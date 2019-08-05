@@ -8,7 +8,9 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            BenchmarkRunner.Run<ScannerMediumArray>();
+            //BenchmarkRunner.Run<ScannerMediumArray>();
+            BenchmarkRunner.Run<ScannerLargeArray>();
+
             /*
             var medArr = new ScannerMediumArray();
             for (int x = 0; x < 10000; x++)
@@ -16,6 +18,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark
                 medArr.CompiledFindBasicPatternMiddle();
             }
             */
+
         }
     }
 }

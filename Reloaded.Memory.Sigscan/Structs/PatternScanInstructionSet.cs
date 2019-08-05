@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 
 namespace Reloaded.Memory.Sigscan.Structs
@@ -113,79 +114,73 @@ namespace Reloaded.Memory.Sigscan.Structs
             {
                 // No generic type constraint exists here that can allow me to perform an efficient equality check with
                 // primitives. Have to write all variations of code out myself.
+
+                // In addition inlining seems to fail, so cannot call another method from these "Add" method calls,
+                // making this function quite ugly.
                 if (bytes >= sizeof(long) && IntPtr.Size == 8)
                 {
                     var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) => CheckLong(ref dataPtr, valueToCheck));
+                    instructions.Add((ref byte* dataPtr) =>
+                    {
+                        if (*(long*)dataPtr != valueToCheck)
+                            return false;
+
+                        dataPtr += sizeof(long);
+                        return true;
+                    });
 
                     bytesSpan = bytesSpan.Slice(sizeof(long));
                     bytes -= sizeof(long);
                 }
+
                 else if (bytes >= sizeof(int))
                 {
                     var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) => CheckInt(ref dataPtr, valueToCheck));
+                    instructions.Add((ref byte* dataPtr) =>
+                    {
+                        if (*(int*)dataPtr != valueToCheck)
+                            return false;
+
+                        dataPtr += sizeof(int);
+                        return true;
+                    });
 
                     bytesSpan = bytesSpan.Slice(sizeof(int));
                     bytes -= sizeof(int);
                 }
+
                 else if (bytes >= sizeof(short))
                 {
                     var valueToCheck = *(short*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) => CheckShort(ref dataPtr, valueToCheck));
+                    instructions.Add((ref byte* dataPtr) =>
+                    {
+                        if (*(short*)dataPtr != valueToCheck)
+                            return false;
+
+                        dataPtr += sizeof(short);
+                        return true;
+                    });
 
                     bytesSpan = bytesSpan.Slice(sizeof(short));
                     bytes -= sizeof(short);
                 }
+
                 else if (bytes >= sizeof(byte))
                 {
                     var valueToCheck = *(byte*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) => CheckByte(ref dataPtr, valueToCheck));
+                    instructions.Add((ref byte* dataPtr) =>
+                    {
+                        if (*dataPtr != valueToCheck)
+                            return false;
+
+                        dataPtr += sizeof(byte);
+                        return true;
+                    });
 
                     bytesSpan = bytesSpan.Slice(sizeof(byte));
                     bytes -= sizeof(byte);
                 }
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe bool CheckLong(ref byte* dataPtr, long value)
-        {
-            if (*(long*)dataPtr != value)
-                return false;
-
-            dataPtr += sizeof(long);
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe bool CheckInt(ref byte* dataPtr, int value)
-        {
-            if (*(int*)dataPtr != value)
-                return false;
-
-            dataPtr += sizeof(int);
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe bool CheckShort(ref byte* dataPtr, short value)
-        {
-            if (*(short*)dataPtr != value)
-                return false;
-
-            dataPtr += sizeof(short);
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe bool CheckByte(ref byte* dataPtr, byte value)
-        {
-            if (*dataPtr != value)
-                return false;
-
-            dataPtr += sizeof(byte);
-            return true;
         }
 
         /* Retrieves the amount of bytes until the next wildcard character starting with a given entry. */
@@ -218,6 +213,7 @@ namespace Reloaded.Memory.Sigscan.Structs
 
         /// <param name="dataPtr">Pointer to the data to check against for equality.</param>
         /// <returns>True if pattern checking should continue, else false.</returns>
+        [SuppressUnmanagedCodeSecurity]
         internal unsafe delegate bool ExecuteInstruction(ref byte* dataPtr);
     }
 }

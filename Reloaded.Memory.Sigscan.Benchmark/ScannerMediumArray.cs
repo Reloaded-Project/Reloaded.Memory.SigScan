@@ -10,15 +10,8 @@ namespace Reloaded.Memory.Sigscan.Benchmark
     [CoreJob]
     public class ScannerMediumArray
     {
-        private static byte[]  _dataFromFile = File.ReadAllBytes("RandomNumbers");
+        private static byte[]  _dataFromFile = File.ReadAllBytes("16KBRandom");
         private static Scanner _scannerFromFile = new Scanner(_dataFromFile);
-
-        [Benchmark]
-        public int CompiledFindBasicPatternAtStart()
-        {
-            var result = _scannerFromFile.CompiledFindPattern("D5 03");
-            return result.Offset;
-        }
 
         [Benchmark]
         public int CompiledFindBasicPatternMiddle()
@@ -41,21 +34,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark
             return result.Offset;
         }
 
-        [Benchmark]
-        public int CompiledPatternNotFound()
-        {
-            var result = _scannerFromFile.CompiledFindPattern("41 B8 25 FA FF");
-            return result.Offset;
-        }
-
         /* Simple */
-
-        [Benchmark]
-        public int SimpleFindBasicPatternAtStart()
-        {
-            var result = _scannerFromFile.SimpleFindPattern("D5 03");
-            return result.Offset;
-        }
 
         [Benchmark]
         public int SimpleFindBasicPatternMiddle()
@@ -75,13 +54,6 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         public int SimpleFindPatternAtEnd()
         {
             var result = _scannerFromFile.SimpleFindPattern("41 B8 25 FA");
-            return result.Offset;
-        }
-
-        [Benchmark]
-        public int SimplePatternNotFound()
-        {
-            var result = _scannerFromFile.SimpleFindPattern("41 B8 25 FA FF");
             return result.Offset;
         }
     }
