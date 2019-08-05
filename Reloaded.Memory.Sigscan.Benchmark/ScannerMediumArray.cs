@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Reloaded.Memory.Sigscan.Benchmark
 {
-    [SimpleJob(1, 20, 10, 2500)]
+    [CoreJob]
     public class ScannerMediumArray
     {
         private static byte[]  _dataFromFile = File.ReadAllBytes("RandomNumbers");

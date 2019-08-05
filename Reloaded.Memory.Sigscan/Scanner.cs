@@ -82,7 +82,7 @@ namespace Reloaded.Memory.Sigscan
                 found              = true;
                 for (int y = 0; y < instructions.Length; y++)
                 {
-                    if (!instructions[y].Execute(ref currentDataPointer))
+                    if (!instructions[y](ref currentDataPointer))
                     {
                         found = false;
                         break;

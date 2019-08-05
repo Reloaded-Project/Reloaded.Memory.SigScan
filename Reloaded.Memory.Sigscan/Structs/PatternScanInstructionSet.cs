@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Reloaded.Memory.Sigscan.Structs.Instructions;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Reloaded.Memory.Sigscan.Structs
 {
@@ -28,7 +30,7 @@ namespace Reloaded.Memory.Sigscan.Structs
         /// Contains the functions that will be executed in order to validate a given block of memory to equal
         /// the pattern this class was instantiated with.
         /// </summary>
-        internal IInstruction[] Instructions;
+        internal ExecuteInstruction[] Instructions;
 
         /// <summary>
         /// Creates a new pattern scan target given a string representation of a pattern.
@@ -65,7 +67,7 @@ namespace Reloaded.Memory.Sigscan.Structs
 
         private void MakeInstructions(string[] skipsAndBytes)
         {
-            var instructions = new List<IInstruction>();
+            var instructions = new List<ExecuteInstruction>();
             var bytesSpan = new Span<byte>(Bytes);
 
             int tokensProcessed = 0;
@@ -91,13 +93,17 @@ namespace Reloaded.Memory.Sigscan.Structs
             Instructions = instructions.ToArray();
         }
 
-        private void EncodeSkip(List<IInstruction> instructions, int skip)
+        private unsafe void EncodeSkip(List<ExecuteInstruction> instructions, int skip)
         {
             // Add skip instruction.
-            instructions.Add(new SkipInstruction(skip));
+            instructions.Add((ref byte* dataPtr) =>
+            {
+                dataPtr += skip;
+                return true;
+            });
         }
 
-        private unsafe void EncodeCheck(List<IInstruction> instructions, int bytes, ref Span<byte> bytesSpan)
+        private unsafe void EncodeCheck(List<ExecuteInstruction> instructions, int bytes, ref Span<byte> bytesSpan)
         {
             // Each instruction in pseudo-code is
             // if (value != span[0]) return false;
@@ -110,7 +116,7 @@ namespace Reloaded.Memory.Sigscan.Structs
                 if (bytes >= sizeof(long) && IntPtr.Size == 8)
                 {
                     var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new CheckLongInstruction(valueToCheck));
+                    instructions.Add((ref byte* dataPtr) => CheckLong(ref dataPtr, valueToCheck));
 
                     bytesSpan = bytesSpan.Slice(sizeof(long));
                     bytes -= sizeof(long);
@@ -118,7 +124,7 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(int))
                 {
                     var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new CheckIntInstruction(valueToCheck));
+                    instructions.Add((ref byte* dataPtr) => CheckInt(ref dataPtr, valueToCheck));
 
                     bytesSpan = bytesSpan.Slice(sizeof(int));
                     bytes -= sizeof(int);
@@ -126,7 +132,7 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(short))
                 {
                     var valueToCheck = *(short*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new CheckShortInstruction(valueToCheck));
+                    instructions.Add((ref byte* dataPtr) => CheckShort(ref dataPtr, valueToCheck));
 
                     bytesSpan = bytesSpan.Slice(sizeof(short));
                     bytes -= sizeof(short);
@@ -134,12 +140,52 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(byte))
                 {
                     var valueToCheck = *(byte*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new CheckByteInstruction(valueToCheck));
+                    instructions.Add((ref byte* dataPtr) => CheckByte(ref dataPtr, valueToCheck));
 
                     bytesSpan = bytesSpan.Slice(sizeof(byte));
                     bytes -= sizeof(byte);
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe bool CheckLong(ref byte* dataPtr, long value)
+        {
+            if (*(long*)dataPtr != value)
+                return false;
+
+            dataPtr += sizeof(long);
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe bool CheckInt(ref byte* dataPtr, int value)
+        {
+            if (*(int*)dataPtr != value)
+                return false;
+
+            dataPtr += sizeof(int);
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe bool CheckShort(ref byte* dataPtr, short value)
+        {
+            if (*(short*)dataPtr != value)
+                return false;
+
+            dataPtr += sizeof(short);
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe bool CheckByte(ref byte* dataPtr, byte value)
+        {
+            if (*dataPtr != value)
+                return false;
+
+            dataPtr += sizeof(byte);
+            return true;
         }
 
         /* Retrieves the amount of bytes until the next wildcard character starting with a given entry. */
@@ -169,5 +215,9 @@ namespace Reloaded.Memory.Sigscan.Structs
 
             return tokens;
         }
+
+        /// <param name="dataPtr">Pointer to the data to check against for equality.</param>
+        /// <returns>True if pattern checking should continue, else false.</returns>
+        internal unsafe delegate bool ExecuteInstruction(ref byte* dataPtr);
     }
 }
