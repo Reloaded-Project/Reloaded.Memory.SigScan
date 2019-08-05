@@ -79,63 +79,50 @@ namespace Reloaded.Memory.Sigscan
 
             byte* dataBasePointer = _dataPtr;
             byte* currentDataPointer;
-            bool  found;
             int lastIndex = (dataLength - instructionSet.Length) + 1;
 
             for (int x = 0; x < lastIndex; x++)
             {
                 currentDataPointer = dataBasePointer + x;
-                found              = true;
                 for (int y = 0; y < numberOfInstructions; y++)
                 {
-                    switch (instructions[y].Instruction)
+                    if (instructions[y].Instruction == Instruction.CheckInt)
                     {
-                        case Instruction.Skip:
-                            currentDataPointer += instructions[y].Skip;
-                            break;
-                        case Instruction.CheckByte:
-                            if (*currentDataPointer != instructions[y].IntValue)
-                            {
-                                found = false;
-                                goto loopExit;
-                            }
+                        if (*(int*)currentDataPointer != instructions[y].IntValue)
+                            goto loopExit;
 
-                            currentDataPointer += sizeof(byte);
-                            break;
-                        case Instruction.CheckShort:
-                            if (*(short*)currentDataPointer != instructions[y].IntValue)
-                            {
-                                found = false;
-                                goto loopExit;
-                            }
+                        currentDataPointer += sizeof(int);
+                    }
+                    else if (instructions[y].Instruction == Instruction.CheckShort)
+                    {
+                        if (*(short*)currentDataPointer != instructions[y].IntValue)
+                            goto loopExit;
 
-                            currentDataPointer += sizeof(short);
-                            break;
-                        case Instruction.CheckInt:
-                            if (*(int*)currentDataPointer != instructions[y].IntValue)
-                            {
-                                found = false;
-                                goto loopExit;
-                            }
+                        currentDataPointer += sizeof(short);
+                    }
+                    else if (instructions[y].Instruction == Instruction.CheckByte)
+                    {
+                        if (*currentDataPointer != instructions[y].IntValue)
+                            goto loopExit;
 
-                            currentDataPointer += sizeof(int);
-                            break;
+                        currentDataPointer += sizeof(byte);
+                    }
+                    else if (instructions[y].Instruction == Instruction.Skip)
+                    {
+                        currentDataPointer += instructions[y].Skip;
+                    }
+                    else
+                    {
+                        if (*(long*)currentDataPointer != instructions[y].LongValue)
+                            goto loopExit;
 
-                        case Instruction.CheckLong:
-                            if (*(long*) currentDataPointer != instructions[y].LongValue)
-                            {
-                                found = false;
-                                goto loopExit;
-                            }
-
-                            currentDataPointer += sizeof(long);
-                            break;
+                        currentDataPointer += sizeof(long);
                     }
                 }
 
-                loopExit:
-                if (found)
-                    return new PatternScanResult(x);
+                return new PatternScanResult(x);
+
+                loopExit:;
             }
 
             return new PatternScanResult(-1);
