@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using Reloaded.Memory.Sigscan.Instructions;
 
 namespace Reloaded.Memory.Sigscan.Structs
 {
@@ -31,7 +32,7 @@ namespace Reloaded.Memory.Sigscan.Structs
         /// Contains the functions that will be executed in order to validate a given block of memory to equal
         /// the pattern this class was instantiated with.
         /// </summary>
-        internal ExecuteInstruction[] Instructions;
+        internal GenericInstruction[] Instructions;
 
         /// <summary>
         /// Creates a new pattern scan target given a string representation of a pattern.
@@ -68,7 +69,7 @@ namespace Reloaded.Memory.Sigscan.Structs
 
         private void MakeInstructions(string[] skipsAndBytes)
         {
-            var instructions = new List<ExecuteInstruction>();
+            var instructions = new List<GenericInstruction>();
             var bytesSpan = new Span<byte>(Bytes);
 
             int tokensProcessed = 0;
@@ -94,17 +95,13 @@ namespace Reloaded.Memory.Sigscan.Structs
             Instructions = instructions.ToArray();
         }
 
-        private unsafe void EncodeSkip(List<ExecuteInstruction> instructions, int skip)
+        private unsafe void EncodeSkip(List<GenericInstruction> instructions, int skip)
         {
             // Add skip instruction.
-            instructions.Add((ref byte* dataPtr) =>
-            {
-                dataPtr += skip;
-                return true;
-            });
+            instructions.Add(new GenericInstruction(Instruction.Skip, 0, skip));
         }
 
-        private unsafe void EncodeCheck(List<ExecuteInstruction> instructions, int bytes, ref Span<byte> bytesSpan)
+        private unsafe void EncodeCheck(List<GenericInstruction> instructions, int bytes, ref Span<byte> bytesSpan)
         {
             // Each instruction in pseudo-code is
             // if (value != span[0]) return false;
@@ -117,17 +114,12 @@ namespace Reloaded.Memory.Sigscan.Structs
 
                 // In addition inlining seems to fail, so cannot call another method from these "Add" method calls,
                 // making this function quite ugly.
+
+                // Note: Code now moved to Scanner, inlined as far as it goes.
                 if (bytes >= sizeof(long) && IntPtr.Size == 8)
                 {
                     var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) =>
-                    {
-                        if (*(long*)dataPtr != valueToCheck)
-                            return false;
-
-                        dataPtr += sizeof(long);
-                        return true;
-                    });
+                    instructions.Add(new GenericInstruction(Instruction.CheckLong, valueToCheck, 0));
 
                     bytesSpan = bytesSpan.Slice(sizeof(long));
                     bytes -= sizeof(long);
@@ -136,14 +128,7 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(int))
                 {
                     var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) =>
-                    {
-                        if (*(int*)dataPtr != valueToCheck)
-                            return false;
-
-                        dataPtr += sizeof(int);
-                        return true;
-                    });
+                    instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, 0));
 
                     bytesSpan = bytesSpan.Slice(sizeof(int));
                     bytes -= sizeof(int);
@@ -152,14 +137,7 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(short))
                 {
                     var valueToCheck = *(short*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) =>
-                    {
-                        if (*(short*)dataPtr != valueToCheck)
-                            return false;
-
-                        dataPtr += sizeof(short);
-                        return true;
-                    });
+                    instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, 0));
 
                     bytesSpan = bytesSpan.Slice(sizeof(short));
                     bytes -= sizeof(short);
@@ -168,14 +146,7 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(byte))
                 {
                     var valueToCheck = *(byte*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add((ref byte* dataPtr) =>
-                    {
-                        if (*dataPtr != valueToCheck)
-                            return false;
-
-                        dataPtr += sizeof(byte);
-                        return true;
-                    });
+                    instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, 0));
 
                     bytesSpan = bytesSpan.Slice(sizeof(byte));
                     bytes -= sizeof(byte);
@@ -210,10 +181,5 @@ namespace Reloaded.Memory.Sigscan.Structs
 
             return tokens;
         }
-
-        /// <param name="dataPtr">Pointer to the data to check against for equality.</param>
-        /// <returns>True if pattern checking should continue, else false.</returns>
-        [SuppressUnmanagedCodeSecurity]
-        internal unsafe delegate bool ExecuteInstruction(ref byte* dataPtr);
     }
 }

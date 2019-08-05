@@ -18,7 +18,6 @@ namespace Reloaded.Memory.Sigscan.Benchmark
                 medArr.CompiledFindBasicPatternMiddle();
             }
             */
-
         }
     }
 }

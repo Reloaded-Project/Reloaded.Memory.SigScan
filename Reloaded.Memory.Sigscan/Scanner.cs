@@ -2,10 +2,12 @@
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Numerics;
+using System.Reflection.Emit;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Reloaded.Memory.Sigscan.Instructions;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
 
@@ -63,32 +65,75 @@ namespace Reloaded.Memory.Sigscan
         ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
         /// </param>
         /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-        public PatternScanResult CompiledFindPattern(string pattern)
+        public unsafe PatternScanResult CompiledFindPattern(string pattern)
         {
             var instructionSet = new PatternScanInstructionSet(pattern);
-            var instructions   = instructionSet.Instructions;
+
+            // Get instruction set and copy instructions to stack.
+            int numberOfInstructions = instructionSet.Instructions.Length;
+            GenericInstruction* instructions = stackalloc GenericInstruction[numberOfInstructions];
+            for (int x = 0; x < instructionSet.Instructions.Length; x++)
+                instructions[x] = instructionSet.Instructions[x];
+
             int dataLength     = _data.Length;
 
             byte* dataBasePointer = _dataPtr;
             byte* currentDataPointer;
             bool  found;
+            int lastIndex = (dataLength - instructionSet.Length) + 1;
 
-            for (int x = 0; x < dataLength; x++)
+            for (int x = 0; x < lastIndex; x++)
             {
-                if (x + instructionSet.Length > dataLength)
-                    continue;
-
                 currentDataPointer = dataBasePointer + x;
                 found              = true;
-                for (int y = 0; y < instructions.Length; y++)
+                for (int y = 0; y < numberOfInstructions; y++)
                 {
-                    if (!instructions[y](ref currentDataPointer))
+                    switch (instructions[y].Instruction)
                     {
-                        found = false;
-                        break;
+                        case Instruction.Skip:
+                            currentDataPointer += instructions[y].Skip;
+                            break;
+                        case Instruction.CheckByte:
+                            if (*currentDataPointer != instructions[y].IntValue)
+                            {
+                                found = false;
+                                goto loopExit;
+                            }
+
+                            currentDataPointer += sizeof(byte);
+                            break;
+                        case Instruction.CheckShort:
+                            if (*(short*)currentDataPointer != instructions[y].IntValue)
+                            {
+                                found = false;
+                                goto loopExit;
+                            }
+
+                            currentDataPointer += sizeof(short);
+                            break;
+                        case Instruction.CheckInt:
+                            if (*(int*)currentDataPointer != instructions[y].IntValue)
+                            {
+                                found = false;
+                                goto loopExit;
+                            }
+
+                            currentDataPointer += sizeof(int);
+                            break;
+
+                        case Instruction.CheckLong:
+                            if (*(long*) currentDataPointer != instructions[y].LongValue)
+                            {
+                                found = false;
+                                goto loopExit;
+                            }
+
+                            currentDataPointer += sizeof(long);
+                            break;
                     }
                 }
 
+                loopExit:
                 if (found)
                     return new PatternScanResult(x);
             }

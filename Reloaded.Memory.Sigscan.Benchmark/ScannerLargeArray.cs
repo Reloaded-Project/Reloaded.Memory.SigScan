@@ -42,7 +42,6 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         }
 
         /* Simple */
-
         [Benchmark]
         public int SimpleShortPatternMiddle()
         {
