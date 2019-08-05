@@ -57,7 +57,7 @@ namespace Reloaded.Memory.Sigscan
         /// <summary>
         /// Attempts to find a given pattern inside the memory region this class was created with.
         /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
-        /// This method generally works better when the expected offset is bigger than 4K.
+        /// This method generally works better when the expected offset is bigger than 32.
         /// </summary>
         /// <param name="pattern">
         ///     The pattern to look for inside the given region.
@@ -75,7 +75,7 @@ namespace Reloaded.Memory.Sigscan
             for (int x = 0; x < instructionSet.Instructions.Length; x++)
                 instructions[x] = instructionSet.Instructions[x];
 
-            int dataLength     = _data.Length;
+            int dataLength        = _data.Length;
 
             byte* dataBasePointer = _dataPtr;
             byte* currentDataPointer;
@@ -86,6 +86,8 @@ namespace Reloaded.Memory.Sigscan
                 currentDataPointer = dataBasePointer + x;
                 for (int y = 0; y < numberOfInstructions; y++)
                 {
+                    // Do not use Switch statement here.
+                    // Switch statement generates functions, we want to avoid functions, everything inlined!
                     if (instructions[y].Instruction == Instruction.CheckInt)
                     {
                         if (*(int*)currentDataPointer != instructions[y].IntValue)
@@ -131,7 +133,7 @@ namespace Reloaded.Memory.Sigscan
         /// <summary>
         /// Attempts to find a given pattern inside the memory region this class was created with.
         /// This method uses the simple search, which simply iterates over all bytes, reading max 1 byte at once.
-        /// This method generally works better when the expected offset is smaller than 4K.
+        /// This method generally works better when the expected offset is smaller than 32.
         /// </summary>
         /// <param name="pattern">
         ///     The pattern to look for inside the given region.
