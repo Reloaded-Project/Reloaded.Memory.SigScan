@@ -41,13 +41,6 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         }
 
         [Benchmark]
-        public int SimpleSmallPatternWithMask32Bytes()
-        {
-            var result = _scanner.SimpleFindPattern("A7 6C FE B1");
-            return result.Offset;
-        }
-
-        [Benchmark]
         public int SimpleMediumPatternWithMaskMiddle()
         {
             var result = _scanner.SimpleFindPattern("EA AC ?? ?? AE 45 9F");
@@ -55,7 +48,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         }
 
         [Benchmark]
-        public int SimpleFindPatternAtEnd()
+        public int SimpleSmallPatternAtEnd()
         {
             var result = _scanner.SimpleFindPattern("7A BB");
             return result.Offset;
@@ -71,13 +64,6 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         }
 
         [Benchmark]
-        public int CompiledSmallPatternWithMask32Bytes()
-        {
-            var result = _scanner.SimpleFindPattern("A7 6C FE B1");
-            return result.Offset;
-        }
-
-        [Benchmark]
         public int CompiledMediumPatternWithMaskMiddle()
         {
             var result = _scanner.CompiledFindPattern("EA AC ?? ?? AE 45 9F");
@@ -85,7 +71,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         }
 
         [Benchmark]
-        public int CompiledFindPatternAtEnd()
+        public int CompiledSmallPatternAtEnd()
         {
             var result = _scanner.CompiledFindPattern("7A BB");
             return result.Offset;

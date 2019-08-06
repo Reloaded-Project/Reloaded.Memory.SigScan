@@ -32,7 +32,7 @@ namespace Reloaded.Memory.SigScan.Tests
                 0x07, 0xb3, 0x59, 0xb4, 0xa5, 0xa0, 0x0a, 0x54, 0x76, 0x56, 0x51, 0x45, 0x33, 0x9b, 0x7a, 0xbb
             };
 
-
+        
         [Fact]
         public void InstantiateFromCurrentProcess()
         {
@@ -66,6 +66,18 @@ namespace Reloaded.Memory.SigScan.Tests
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
             Assert.Equal(9, resultCompiled.Offset);
+        }
+
+        [Fact]
+        public void FindPatternWithLongAndMask()
+        {
+            var scanner = new Scanner(_data);
+            var resultCompiled = scanner.CompiledFindPattern("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
+            var resultSimple = scanner.SimpleFindPattern("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
+
+            Assert.Equal(resultCompiled, resultSimple);
+            Assert.True(resultSimple.Found);
+            Assert.Equal(9, resultSimple.Offset);
         }
 
         [Fact]

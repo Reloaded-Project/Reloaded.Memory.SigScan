@@ -104,19 +104,15 @@ namespace Reloaded.Memory.Sigscan.Structs
 
         private unsafe void EncodeCheck(List<GenericInstruction> instructions, int bytes, int skip, ref Span<byte> bytesSpan)
         {
-            // Each instruction in pseudo-code is
-            // if (value != span[0]) return false;
-            // else { slice and return true; }
-
+            // Code now moved to Scanner, inlined as far as it goes.
+            // Delegates, or any kind of function calls are too slow.
+            // Generics cannot even check for Equality without `Equals`
             while (bytes > 0)
             {
-                // No generic type constraint exists here that can allow me to perform an efficient equality check with
-                // primitives. Have to write all variations of code out myself.
-
-                // In addition inlining seems to fail, so cannot call another method from these "Add" method calls,
-                // making this function quite ugly.
-
-                // Note: Code now moved to Scanner, inlined as far as it goes.
+                // Note: Longs disabled due to bias towards short/byte making them slower.
+                // Encoding longs as int is faster.
+                
+                /*
                 if (bytes >= sizeof(long) && IntPtr.Size == 8)
                 {
                     var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
@@ -129,8 +125,9 @@ namespace Reloaded.Memory.Sigscan.Structs
                     bytesSpan = bytesSpan.Slice(sizeof(long));
                     bytes -= sizeof(long);
                 }
-
-                else if (bytes >= sizeof(int))
+                */
+                
+                if (bytes >= sizeof(int))
                 {
                     var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
 

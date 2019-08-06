@@ -8,9 +8,9 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            //BenchmarkRunner.Run<ScannerSmallArray>();
+            BenchmarkRunner.Run<ScannerSmallArray>();
             //BenchmarkRunner.Run<ScannerMediumArray>();
-            BenchmarkRunner.Run<ScannerLargeArray>();
+            //BenchmarkRunner.Run<ScannerLargeArray>();
 
             /*
             var medArr = new ScannerMediumArray();

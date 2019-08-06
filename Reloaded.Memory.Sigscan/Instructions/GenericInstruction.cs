@@ -8,11 +8,11 @@ namespace Reloaded.Memory.Sigscan.Instructions
     public struct GenericInstruction
     {
         public Instruction Instruction;
-        public long  Skip;
+        public int   Skip;
         public long  LongValue;
         public int   IntValue ;
 
-        public GenericInstruction(Instruction instruction, long longValue, long skip)
+        public GenericInstruction(Instruction instruction, long longValue, int skip)
         {
             Instruction = instruction;
             LongValue   = longValue;

@@ -99,6 +99,5 @@ namespace Reloaded.Memory.Sigscan.Benchmark
             var result = _scannerFromFile.SimpleFindPattern("9F 43 63 68 43 4F 99 A7 15 48");
             return result.Offset;
         }
-        
     }
 }

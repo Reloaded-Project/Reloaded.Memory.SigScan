@@ -82,22 +82,17 @@ namespace Reloaded.Memory.Sigscan
             int lastIndex = (dataLength - instructionSet.Length) + 1;
 
             // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
+            // See 
             for (int x = 0; x < lastIndex; x++)
             {
                 currentDataPointer = dataBasePointer + x;
                 for (int y = 0; y < numberOfInstructions; y++)
                 {
                     // Do not use Switch statement here.
-                    // Switch statement generates functions, we want to avoid functions, everything inlined!
-                    if (instructions[y].Instruction == Instruction.CheckInt)
-                    {
-                        if (*(int*)currentDataPointer != instructions[y].IntValue)
-                            goto loopExit;
+                    // Switch statement generates call table, it's slower compared to biased if statement!
+                    // Longs excluded due to bias making them slower, they're encoded as ints.
 
-                        currentDataPointer += sizeof(int);
-                        currentDataPointer += instructions[y].Skip;
-                    }
-                    else if (instructions[y].Instruction == Instruction.CheckShort)
+                    if (instructions[y].Instruction == Instruction.CheckShort)
                     {
                         if (*(short*)currentDataPointer != instructions[y].IntValue)
                             goto loopExit;
@@ -113,16 +108,16 @@ namespace Reloaded.Memory.Sigscan
                         currentDataPointer += sizeof(byte);
                         currentDataPointer += instructions[y].Skip;
                     }
-                    else if (instructions[y].Instruction == Instruction.Skip)
+                    else if (instructions[y].Instruction == Instruction.CheckInt)
                     {
+                        if (*(int*)currentDataPointer != instructions[y].IntValue)
+                            goto loopExit;
+
+                        currentDataPointer += sizeof(int);
                         currentDataPointer += instructions[y].Skip;
                     }
                     else
                     {
-                        if (*(long*)currentDataPointer != instructions[y].LongValue)
-                            goto loopExit;
-
-                        currentDataPointer += sizeof(long);
                         currentDataPointer += instructions[y].Skip;
                     }
                 }
