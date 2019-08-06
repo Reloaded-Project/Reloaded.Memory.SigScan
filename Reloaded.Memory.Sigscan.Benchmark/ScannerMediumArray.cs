@@ -14,21 +14,21 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         private static Scanner _scannerFromFile = new Scanner(_dataFromFile);
 
         [Benchmark]
-        public int CompiledFindBasicPatternMiddle()
+        public int CompiledMediumPatternMiddle()
         {
             var result = _scannerFromFile.CompiledFindPattern("DA 69 64 A8 FE B9");
             return result.Offset;
         }
 
         [Benchmark]
-        public int CompiledFindPatternMiddleWithMask()
+        public int CompiledMediumPatternMiddleWithMask()
         {
             var result = _scannerFromFile.CompiledFindPattern("DA 69 ?? ?? FE B9");
             return result.Offset;
         }
 
         [Benchmark]
-        public int CompiledFindPatternAtEnd()
+        public int CompiledShortPatternAtEnd()
         {
             var result = _scannerFromFile.CompiledFindPattern("41 B8 25 FA");
             return result.Offset;
@@ -37,21 +37,21 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         /* Simple */
 
         [Benchmark]
-        public int SimpleFindBasicPatternMiddle()
+        public int SimpleMediumPatternMiddle()
         {
             var result = _scannerFromFile.SimpleFindPattern("DA 69 64 A8 FE B9");
             return result.Offset;
         }
 
         [Benchmark]
-        public int SimpleFindPatternMiddleWithMask()
+        public int SimpleMediumPatternMiddleWithMask()
         {
             var result = _scannerFromFile.SimpleFindPattern("DA 69 ?? ?? FE B9");
             return result.Offset;
         }
 
         [Benchmark]
-        public int SimpleFindPatternAtEnd()
+        public int SimpleShortPatternAtEnd()
         {
             var result = _scannerFromFile.SimpleFindPattern("41 B8 25 FA");
             return result.Offset;

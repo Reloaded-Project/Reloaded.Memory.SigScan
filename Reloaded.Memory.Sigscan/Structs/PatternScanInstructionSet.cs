@@ -13,7 +13,7 @@ namespace Reloaded.Memory.Sigscan.Structs
     /// [Internal & Test Use]
     /// Represents the pattern to be searched by the scanner.
     /// </summary>
-    public class PatternScanInstructionSet
+    public ref struct PatternScanInstructionSet
     {
         private static List<byte> _bytes       = new List<byte>(1024);
         private static object _buildLock       = new object();
@@ -42,7 +42,14 @@ namespace Reloaded.Memory.Sigscan.Structs
         ///     Example: "11 22 33 ?? 55".
         ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F.
         /// </param>
-        public PatternScanInstructionSet(string stringPattern)
+        public static PatternScanInstructionSet FromStringPattern(string stringPattern)
+        {
+            var instructionSet = new PatternScanInstructionSet();
+            instructionSet.Initialize(stringPattern);
+            return instructionSet;
+        }
+
+        private void Initialize(string stringPattern)
         {
             string[] entries = stringPattern.Split(' ');
             Length = entries.Length;

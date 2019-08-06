@@ -10,7 +10,7 @@ namespace Reloaded.Memory.SigScan.Tests
         public void InstantiateInstructions()
         {
             string pattern = "11 22 33 ?? 55";
-            var target = new PatternScanInstructionSet(pattern);
+            var target = PatternScanInstructionSet.FromStringPattern(pattern);
 
             // Instructions:
             // Compare Short

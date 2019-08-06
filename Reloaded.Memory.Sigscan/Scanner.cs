@@ -67,65 +67,62 @@ namespace Reloaded.Memory.Sigscan
         /// <returns>A result indicating an offset (if found) of the pattern.</returns>
         public unsafe PatternScanResult CompiledFindPattern(string pattern)
         {
-            var instructionSet = new PatternScanInstructionSet(pattern);
-
-            // Get instruction set and copy instructions to stack.
+            var instructionSet = PatternScanInstructionSet.FromStringPattern(pattern);
             int numberOfInstructions = instructionSet.Instructions.Length;
-            GenericInstruction* instructions = stackalloc GenericInstruction[numberOfInstructions];
-            for (int x = 0; x < instructionSet.Instructions.Length; x++)
-                instructions[x] = instructionSet.Instructions[x];
-
-            int dataLength        = _data.Length;
+            int dataLength     = _data.Length;
 
             byte* dataBasePointer = _dataPtr;
             byte* currentDataPointer;
             int lastIndex = (dataLength - instructionSet.Length) + 1;
 
             // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
-            // See 
-            for (int x = 0; x < lastIndex; x++)
+            fixed (GenericInstruction* instructions = instructionSet.Instructions)
             {
-                currentDataPointer = dataBasePointer + x;
-                for (int y = 0; y < numberOfInstructions; y++)
+                for (int x = 0; x < lastIndex; x++)
                 {
-                    // Do not use Switch statement here.
-                    // Switch statement generates call table, it's slower compared to biased if statement!
-                    // Longs excluded due to bias making them slower, they're encoded as ints.
-
-                    if (instructions[y].Instruction == Instruction.CheckShort)
+                    currentDataPointer = dataBasePointer + x;
+                    for (int y = 0; y < numberOfInstructions; y++)
                     {
-                        if (*(short*)currentDataPointer != instructions[y].IntValue)
-                            goto loopExit;
+                        // Do not use Switch statement here.
+                        // Switch statement generates call table, it's slower compared to biased if statement!
+                        // Longs excluded due to bias making them slower, they're encoded as ints.
 
-                        currentDataPointer += sizeof(short);
-                        currentDataPointer += instructions[y].Skip;
-                    }
-                    else if (instructions[y].Instruction == Instruction.CheckByte)
-                    {
-                        if (*currentDataPointer != instructions[y].IntValue)
-                            goto loopExit;
+                        if (instructions[y].Instruction == Instruction.CheckShort)
+                        {
+                            if (*(short*)currentDataPointer != instructions[y].IntValue)
+                                goto loopExit;
 
-                        currentDataPointer += sizeof(byte);
-                        currentDataPointer += instructions[y].Skip;
-                    }
-                    else if (instructions[y].Instruction == Instruction.CheckInt)
-                    {
-                        if (*(int*)currentDataPointer != instructions[y].IntValue)
-                            goto loopExit;
+                            currentDataPointer += sizeof(short);
+                            currentDataPointer += instructions[y].Skip;
+                        }
+                        else if (instructions[y].Instruction == Instruction.CheckByte)
+                        {
+                            if (*currentDataPointer != instructions[y].IntValue)
+                                goto loopExit;
 
-                        currentDataPointer += sizeof(int);
-                        currentDataPointer += instructions[y].Skip;
+                            currentDataPointer += sizeof(byte);
+                            currentDataPointer += instructions[y].Skip;
+                        }
+                        else if (instructions[y].Instruction == Instruction.CheckInt)
+                        {
+                            if (*(int*)currentDataPointer != instructions[y].IntValue)
+                                goto loopExit;
+
+                            currentDataPointer += sizeof(int);
+                            currentDataPointer += instructions[y].Skip;
+                        }
+                        else
+                        {
+                            currentDataPointer += instructions[y].Skip;
+                        }
                     }
-                    else
-                    {
-                        currentDataPointer += instructions[y].Skip;
-                    }
+
+                    return new PatternScanResult(x);
+
+                    loopExit:;
                 }
-
-                return new PatternScanResult(x);
-
-                loopExit:;
             }
+            
 
             return new PatternScanResult(-1);
         }
@@ -169,7 +166,7 @@ namespace Reloaded.Memory.Sigscan
                         if (_dataPtr[currentIndex] != patternDataPtr[patternDataOffset])
                             goto loopexit;
 
-                        currentIndex += 1;
+                        currentIndex      += 1;
                         patternDataOffset += 1;
                     }
 

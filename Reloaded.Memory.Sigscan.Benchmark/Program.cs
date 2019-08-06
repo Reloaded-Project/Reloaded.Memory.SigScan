@@ -8,15 +8,15 @@ namespace Reloaded.Memory.Sigscan.Benchmark
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            BenchmarkRunner.Run<ScannerSmallArray>();
+            //BenchmarkRunner.Run<ScannerSmallArray>();
             //BenchmarkRunner.Run<ScannerMediumArray>();
-            //BenchmarkRunner.Run<ScannerLargeArray>();
+            BenchmarkRunner.Run<ScannerLargeArray>();
 
             /*
-            var medArr = new ScannerMediumArray();
+            var lrgArr = new ScannerLargeArray();
             for (int x = 0; x < 10000; x++)
             {
-                medArr.CompiledFindBasicPatternMiddle();
+                lrgArr.SimpleMediumPatternWithMaskMiddle();
             }
             */
         }
