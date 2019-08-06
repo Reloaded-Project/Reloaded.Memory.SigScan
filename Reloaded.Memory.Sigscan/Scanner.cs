@@ -80,13 +80,15 @@ namespace Reloaded.Memory.Sigscan
             {
                 for (int x = 0; x < lastIndex; x++)
                 {
+                    // Do while saves an initial bounds check (y < numberOfInstructions).
+                    // This can be benefitial when there are not many instructions.
                     currentDataPointer = dataBasePointer + x;
-                    for (int y = 0; y < numberOfInstructions; y++)
+                    int y = 0;
+                    do
                     {
                         // Do not use Switch statement here.
                         // Switch statement generates call table, it's slower compared to biased if statement!
                         // Longs excluded due to bias making them slower, they're encoded as ints.
-
                         if (instructions[y].Instruction == Instruction.CheckShort)
                         {
                             if (*(short*)currentDataPointer != instructions[y].IntValue)
@@ -112,10 +114,12 @@ namespace Reloaded.Memory.Sigscan
                         {
                             currentDataPointer += instructions[y].Skip;
                         }
+
+                        y++;
                     }
+                    while (y < numberOfInstructions);
 
                     return new PatternScanResult(x);
-
                     loopExit:;
                 }
             }
@@ -150,12 +154,14 @@ namespace Reloaded.Memory.Sigscan
                     int patternDataOffset = 0;
                     int currentIndex = x;
 
-                    for (int y = 0; y < patternMask.Length; y++)
+                    int y = 0;
+                    do
                     {
                         // Some performance is saved by making the mask a non-string, since a string comparison is a bit more involved with e.g. null checks.
                         if (patternMask[y] == 0x0)
                         {
                             currentIndex += 1;
+                            y++;
                             continue;
                         }
 
@@ -163,12 +169,13 @@ namespace Reloaded.Memory.Sigscan
                         if (_dataPtr[currentIndex] != patternDataPtr[patternDataOffset])
                             goto loopexit;
 
-                        currentIndex      += 1;
+                        currentIndex += 1;
                         patternDataOffset += 1;
+                        y++;
                     }
+                    while (y < patternMask.Length);
 
                     return new PatternScanResult(x);
-
                     loopexit:;
                 }
 
