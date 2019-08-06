@@ -10,7 +10,7 @@ namespace Reloaded.Memory.Sigscan.Structs
     /// </summary>
     public struct SimplePatternScanData
     {
-        private static List<byte> _bytes = new List<byte>(1024);
+        private static List<byte> _bytes       = new List<byte>(1024);
         private static List<byte> _maskBuilder = new List<byte>(1024);
         private static object _buildLock = new object();
 

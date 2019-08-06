@@ -80,15 +80,16 @@ namespace Reloaded.Memory.Sigscan.Structs
                 if (bytes == 0)
                 {
                     // No bytes, encode skip.
-                    int skip = CountTokensUntilMatch(skipsAndBytes, tokensProcessed + bytes);
+                    int skip = CountTokensUntilMatch(skipsAndBytes, tokensProcessed);
                     EncodeSkip(instructions, skip);
                     tokensProcessed += skip;
                 }
                 else
                 {
-                    // Bytes, encode check!
-                    EncodeCheck(instructions, bytes, ref bytesSpan);
-                    tokensProcessed += bytes;
+                    // Bytes, now find skip after and encode check!
+                    int skip = CountTokensUntilMatch(skipsAndBytes, tokensProcessed + bytes);
+                    EncodeCheck(instructions, bytes, skip, ref bytesSpan);
+                    tokensProcessed += (bytes + skip);
                 }
             }
 
@@ -101,7 +102,7 @@ namespace Reloaded.Memory.Sigscan.Structs
             instructions.Add(new GenericInstruction(Instruction.Skip, 0, skip));
         }
 
-        private unsafe void EncodeCheck(List<GenericInstruction> instructions, int bytes, ref Span<byte> bytesSpan)
+        private unsafe void EncodeCheck(List<GenericInstruction> instructions, int bytes, int skip, ref Span<byte> bytesSpan)
         {
             // Each instruction in pseudo-code is
             // if (value != span[0]) return false;
@@ -119,7 +120,11 @@ namespace Reloaded.Memory.Sigscan.Structs
                 if (bytes >= sizeof(long) && IntPtr.Size == 8)
                 {
                     var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new GenericInstruction(Instruction.CheckLong, valueToCheck, 0));
+
+                    if (bytes - sizeof(long) > 0)
+                        instructions.Add(new GenericInstruction(Instruction.CheckLong, valueToCheck, 0));
+                    else
+                        instructions.Add(new GenericInstruction(Instruction.CheckLong, valueToCheck, skip));
 
                     bytesSpan = bytesSpan.Slice(sizeof(long));
                     bytes -= sizeof(long);
@@ -128,7 +133,11 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(int))
                 {
                     var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, 0));
+
+                    if (bytes - sizeof(int) > 0)
+                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, 0));
+                    else
+                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, skip));
 
                     bytesSpan = bytesSpan.Slice(sizeof(int));
                     bytes -= sizeof(int);
@@ -137,7 +146,11 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(short))
                 {
                     var valueToCheck = *(short*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, 0));
+
+                    if (bytes - sizeof(short) > 0)
+                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, 0));
+                    else
+                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, skip));
 
                     bytesSpan = bytesSpan.Slice(sizeof(short));
                     bytes -= sizeof(short);
@@ -146,7 +159,11 @@ namespace Reloaded.Memory.Sigscan.Structs
                 else if (bytes >= sizeof(byte))
                 {
                     var valueToCheck = *(byte*)Unsafe.AsPointer(ref bytesSpan[0]);
-                    instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, 0));
+
+                    if (bytes - sizeof(byte) > 0)
+                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, 0));
+                    else
+                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, skip));
 
                     bytesSpan = bytesSpan.Slice(sizeof(byte));
                     bytes -= sizeof(byte);

@@ -57,7 +57,7 @@ namespace Reloaded.Memory.Sigscan
         /// <summary>
         /// Attempts to find a given pattern inside the memory region this class was created with.
         /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
-        /// This method generally works better when the expected offset is bigger than 32.
+        /// This method generally works better when the expected offset is bigger than 4096.
         /// </summary>
         /// <param name="pattern">
         ///     The pattern to look for inside the given region.
@@ -81,6 +81,7 @@ namespace Reloaded.Memory.Sigscan
             byte* currentDataPointer;
             int lastIndex = (dataLength - instructionSet.Length) + 1;
 
+            // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
             for (int x = 0; x < lastIndex; x++)
             {
                 currentDataPointer = dataBasePointer + x;
@@ -94,6 +95,7 @@ namespace Reloaded.Memory.Sigscan
                             goto loopExit;
 
                         currentDataPointer += sizeof(int);
+                        currentDataPointer += instructions[y].Skip;
                     }
                     else if (instructions[y].Instruction == Instruction.CheckShort)
                     {
@@ -101,6 +103,7 @@ namespace Reloaded.Memory.Sigscan
                             goto loopExit;
 
                         currentDataPointer += sizeof(short);
+                        currentDataPointer += instructions[y].Skip;
                     }
                     else if (instructions[y].Instruction == Instruction.CheckByte)
                     {
@@ -108,6 +111,7 @@ namespace Reloaded.Memory.Sigscan
                             goto loopExit;
 
                         currentDataPointer += sizeof(byte);
+                        currentDataPointer += instructions[y].Skip;
                     }
                     else if (instructions[y].Instruction == Instruction.Skip)
                     {
@@ -119,6 +123,7 @@ namespace Reloaded.Memory.Sigscan
                             goto loopExit;
 
                         currentDataPointer += sizeof(long);
+                        currentDataPointer += instructions[y].Skip;
                     }
                 }
 
@@ -133,7 +138,7 @@ namespace Reloaded.Memory.Sigscan
         /// <summary>
         /// Attempts to find a given pattern inside the memory region this class was created with.
         /// This method uses the simple search, which simply iterates over all bytes, reading max 1 byte at once.
-        /// This method generally works better when the expected offset is smaller than 32.
+        /// This method generally works better when the expected offset is smaller than 4096.
         /// </summary>
         /// <param name="pattern">
         ///     The pattern to look for inside the given region.
@@ -143,49 +148,43 @@ namespace Reloaded.Memory.Sigscan
         /// <returns>A result indicating an offset (if found) of the pattern.</returns>
         public PatternScanResult SimpleFindPattern(string pattern)
         {
-            var target = new SimplePatternScanData(pattern);
-            var dataSpan = _data.Span;
+            var target      = new SimplePatternScanData(pattern);
+            var patternData = target.Bytes;
+            var patternMask = target.Mask;
 
-            for (int x = 0; x < _data.Length; x++)
+            int lastIndex   = (_data.Span.Length - patternMask.Length) + 1;
+
+            fixed (byte* patternDataPtr = patternData)
             {
-                if (CheckPatternAtOffset(ref target, ref dataSpan, x))
-                    return new PatternScanResult(x);
-            }
-
-            return new PatternScanResult(-1);
-        }
-
-        /* Checks */
-        private bool CheckPatternAtOffset(ref SimplePatternScanData pattern, ref Span<byte> data, int dataOffset)
-        {
-            // This code is IO bound on my machine. (4790k, 2133MHz CL9 RAM)
-            // As such using unsafe code yielded (no bounds checks) yielded no speed improvements.
-            // Keeping safe code.
-            var patternData = pattern.Bytes;
-            var patternMask = pattern.Mask;
-            int patternDataOffset = 0;
-
-            if (dataOffset + patternMask.Length > data.Length)
-                return false;
-
-            for (int x = 0; x < patternMask.Length; x++)
-            {
-                // Some performance is saved by making the mask a non-string, since a string comparison is a bit more involved with e.g. null checks.
-                if (patternMask[x] == 0x0)
+                for (int x = 0; x < lastIndex; x++)
                 {
-                    dataOffset += 1;
-                    continue;
+                    int patternDataOffset = 0;
+                    int currentIndex = x;
+
+                    for (int y = 0; y < patternMask.Length; y++)
+                    {
+                        // Some performance is saved by making the mask a non-string, since a string comparison is a bit more involved with e.g. null checks.
+                        if (patternMask[y] == 0x0)
+                        {
+                            currentIndex += 1;
+                            continue;
+                        }
+
+                        // Performance: No need to check if Mask is `x`. The only supported wildcard is '?'.
+                        if (_dataPtr[currentIndex] != patternDataPtr[patternDataOffset])
+                            goto loopexit;
+
+                        currentIndex += 1;
+                        patternDataOffset += 1;
+                    }
+
+                    return new PatternScanResult(x);
+
+                    loopexit:;
                 }
 
-                // Performance: No need to check if Mask is `x`. The only supported wildcard is '?'.
-                if (data[dataOffset] != patternData[patternDataOffset])
-                    return false;
-
-                dataOffset += 1;
-                patternDataOffset += 1;
+                return new PatternScanResult(-1);
             }
-
-            return true;
         }
     }
 }
