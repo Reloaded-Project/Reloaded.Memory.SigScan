@@ -116,32 +116,16 @@ namespace Reloaded.Memory.Sigscan.Structs
             // Generics cannot even check for Equality without `Equals`
             while (bytes > 0)
             {
-                // Note: Longs disabled due to bias towards short/byte making them slower.
+                // Note: Longs removed due to bias towards short/byte making them slower.
                 // Encoding longs as int is faster.
-                
-                /*
-                if (bytes >= sizeof(long) && IntPtr.Size == 8)
-                {
-                    var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
-
-                    if (bytes - sizeof(long) > 0)
-                        instructions.Add(new GenericInstruction(Instruction.CheckLong, valueToCheck, 0));
-                    else
-                        instructions.Add(new GenericInstruction(Instruction.CheckLong, valueToCheck, skip));
-
-                    bytesSpan = bytesSpan.Slice(sizeof(long));
-                    bytes -= sizeof(long);
-                }
-                */
-                
                 if (bytes >= sizeof(int))
                 {
                     var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
 
                     if (bytes - sizeof(int) > 0)
-                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, 0));
+                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, sizeof(int)));
                     else
-                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, skip));
+                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, skip + sizeof(int)));
 
                     bytesSpan = bytesSpan.Slice(sizeof(int));
                     bytes -= sizeof(int);
@@ -152,9 +136,9 @@ namespace Reloaded.Memory.Sigscan.Structs
                     var valueToCheck = *(short*)Unsafe.AsPointer(ref bytesSpan[0]);
 
                     if (bytes - sizeof(short) > 0)
-                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, 0));
+                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, sizeof(short)));
                     else
-                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, skip));
+                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, skip + sizeof(short)));
 
                     bytesSpan = bytesSpan.Slice(sizeof(short));
                     bytes -= sizeof(short);
@@ -165,9 +149,9 @@ namespace Reloaded.Memory.Sigscan.Structs
                     var valueToCheck = *(byte*)Unsafe.AsPointer(ref bytesSpan[0]);
 
                     if (bytes - sizeof(byte) > 0)
-                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, 0));
+                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, sizeof(byte)));
                     else
-                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, skip));
+                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, skip + sizeof(byte)));
 
                     bytesSpan = bytesSpan.Slice(sizeof(byte));
                     bytes -= sizeof(byte);

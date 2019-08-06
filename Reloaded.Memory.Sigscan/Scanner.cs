@@ -92,7 +92,6 @@ namespace Reloaded.Memory.Sigscan
                             if (*(short*)currentDataPointer != instructions[y].IntValue)
                                 goto loopExit;
 
-                            currentDataPointer += sizeof(short);
                             currentDataPointer += instructions[y].Skip;
                         }
                         else if (instructions[y].Instruction == Instruction.CheckByte)
@@ -100,7 +99,6 @@ namespace Reloaded.Memory.Sigscan
                             if (*currentDataPointer != instructions[y].IntValue)
                                 goto loopExit;
 
-                            currentDataPointer += sizeof(byte);
                             currentDataPointer += instructions[y].Skip;
                         }
                         else if (instructions[y].Instruction == Instruction.CheckInt)
@@ -108,7 +106,6 @@ namespace Reloaded.Memory.Sigscan
                             if (*(int*)currentDataPointer != instructions[y].IntValue)
                                 goto loopExit;
 
-                            currentDataPointer += sizeof(int);
                             currentDataPointer += instructions[y].Skip;
                         }
                         else
