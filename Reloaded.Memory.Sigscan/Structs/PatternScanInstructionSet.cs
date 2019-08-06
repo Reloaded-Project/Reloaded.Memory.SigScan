@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -15,13 +16,7 @@ namespace Reloaded.Memory.Sigscan.Structs
     /// </summary>
     public ref struct PatternScanInstructionSet
     {
-        private static List<byte> _bytes       = new List<byte>(1024);
-        private static object _buildLock       = new object();
-
-        /// <summary>
-        /// The sequence of bytes that will be compared during the scan.
-        /// </summary>
-        public byte[] Bytes;
+        private const  string MaskIgnore      = "??";
 
         /// <summary>
         /// The length of the original given pattern.
@@ -33,6 +28,11 @@ namespace Reloaded.Memory.Sigscan.Structs
         /// the pattern this class was instantiated with.
         /// </summary>
         internal GenericInstruction[] Instructions;
+
+        /// <summary>
+        /// Contains the number of instructions in the <see cref="Instructions"/> object.
+        /// </summary>
+        internal int NumberOfInstructions;
 
         /// <summary>
         /// Creates a new pattern scan target given a string representation of a pattern.
@@ -54,62 +54,58 @@ namespace Reloaded.Memory.Sigscan.Structs
             string[] entries = stringPattern.Split(' ');
             Length = entries.Length;
 
-            // Get all bytes.
-            ExtractBytesToMatch(entries);
-
-            // Make Instructions.
-            MakeInstructions(entries);
-        }
-
-        private void ExtractBytesToMatch(string[] entries)
-        {
-            lock (_buildLock)
+            byte[] bytesToCompare = new byte[entries.Length];
+            int arrayIndex = 0;
+            foreach (var segment in entries)
             {
-                _bytes.Clear();
-                foreach (var segment in entries)
-                    if (segment != "??")
-                        _bytes.Add(Convert.ToByte(segment, 16));
-
-                Bytes = _bytes.ToArray();
+                if (!segment.Equals(MaskIgnore, StringComparison.Ordinal))
+                {
+                    bytesToCompare[arrayIndex] = byte.Parse(segment, NumberStyles.HexNumber);
+                    arrayIndex += 1;
+                }
             }
-        }
 
-        private void MakeInstructions(string[] skipsAndBytes)
-        {
-            var instructions = new List<GenericInstruction>();
-            var bytesSpan = new Span<byte>(Bytes);
+            // Get bytes to make instructions with.
+            Instructions  = new GenericInstruction[Length];
+            var bytesSpan = new Span<byte>(bytesToCompare, 0, arrayIndex);
 
             int tokensProcessed = 0;
-            while (tokensProcessed < skipsAndBytes.Length)
+            while (tokensProcessed < entries.Length)
             {
-                int bytes = CountTokensUntilSkip(skipsAndBytes, tokensProcessed);
+                int bytes = CountTokensUntilSkip(entries, tokensProcessed);
 
                 if (bytes == 0)
                 {
                     // No bytes, encode skip.
-                    int skip = CountTokensUntilMatch(skipsAndBytes, tokensProcessed);
-                    EncodeSkip(instructions, skip);
+                    int skip = CountTokensUntilMatch(entries, tokensProcessed);
+                    EncodeSkip(skip);
                     tokensProcessed += skip;
                 }
                 else
                 {
                     // Bytes, now find skip after and encode check!
-                    int skip = CountTokensUntilMatch(skipsAndBytes, tokensProcessed + bytes);
-                    EncodeCheck(instructions, bytes, skip, ref bytesSpan);
+                    int skip = CountTokensUntilMatch(entries, tokensProcessed + bytes);
+                    EncodeCheck(bytes, skip, ref bytesSpan);
                     tokensProcessed += (bytes + skip);
                 }
             }
-
-            Instructions = instructions.ToArray();
         }
 
-        private unsafe void EncodeSkip(List<GenericInstruction> instructions, int skip)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void AddInstruction(GenericInstruction instruction)
+        {
+            Instructions[NumberOfInstructions] = instruction;
+            NumberOfInstructions++;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void EncodeSkip(int skip)
         {
             // Add skip instruction.
-            instructions.Add(new GenericInstruction(Instruction.Skip, 0, skip));
+            AddInstruction(new GenericInstruction(Instruction.Skip, 0, skip));
         }
 
-        private unsafe void EncodeCheck(List<GenericInstruction> instructions, int bytes, int skip, ref Span<byte> bytesSpan)
+        private unsafe void EncodeCheck(int bytes, int skip, ref Span<byte> bytesSpan)
         {
             // Code now moved to Scanner, inlined as far as it goes.
             // Delegates, or any kind of function calls are too slow.
@@ -123,9 +119,9 @@ namespace Reloaded.Memory.Sigscan.Structs
                     var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
 
                     if (bytes - sizeof(int) > 0)
-                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, sizeof(int)));
+                        AddInstruction(new GenericInstruction(Instruction.CheckInt, valueToCheck, sizeof(int)));
                     else
-                        instructions.Add(new GenericInstruction(Instruction.CheckInt, valueToCheck, skip + sizeof(int)));
+                        AddInstruction(new GenericInstruction(Instruction.CheckInt, valueToCheck, skip + sizeof(int)));
 
                     bytesSpan = bytesSpan.Slice(sizeof(int));
                     bytes -= sizeof(int);
@@ -136,9 +132,9 @@ namespace Reloaded.Memory.Sigscan.Structs
                     var valueToCheck = *(short*)Unsafe.AsPointer(ref bytesSpan[0]);
 
                     if (bytes - sizeof(short) > 0)
-                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, sizeof(short)));
+                        AddInstruction(new GenericInstruction(Instruction.CheckShort, valueToCheck, sizeof(short)));
                     else
-                        instructions.Add(new GenericInstruction(Instruction.CheckShort, valueToCheck, skip + sizeof(short)));
+                        AddInstruction(new GenericInstruction(Instruction.CheckShort, valueToCheck, skip + sizeof(short)));
 
                     bytesSpan = bytesSpan.Slice(sizeof(short));
                     bytes -= sizeof(short);
@@ -149,9 +145,9 @@ namespace Reloaded.Memory.Sigscan.Structs
                     var valueToCheck = *(byte*)Unsafe.AsPointer(ref bytesSpan[0]);
 
                     if (bytes - sizeof(byte) > 0)
-                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, sizeof(byte)));
+                        AddInstruction(new GenericInstruction(Instruction.CheckByte, valueToCheck, sizeof(byte)));
                     else
-                        instructions.Add(new GenericInstruction(Instruction.CheckByte, valueToCheck, skip + sizeof(byte)));
+                        AddInstruction(new GenericInstruction(Instruction.CheckByte, valueToCheck, skip + sizeof(byte)));
 
                     bytesSpan = bytesSpan.Slice(sizeof(byte));
                     bytes -= sizeof(byte);
@@ -160,25 +156,30 @@ namespace Reloaded.Memory.Sigscan.Structs
         }
 
         /* Retrieves the amount of bytes until the next wildcard character starting with a given entry. */
+
+        // The code below has been inlined because it is frequently called to help aid performance.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int CountTokensUntilSkip(string[] entries, int startingTokenEntry)
-        {
-            return CountTokensWhile(entries, s => s != "??", startingTokenEntry);
-        }
-
-        private int CountTokensUntilMatch(string[] entries, int startingTokenEntry)
-        {
-            return CountTokensWhile(entries, s => s == "??", startingTokenEntry);
-        }
-
-        /// <summary>
-        /// Retrieves the amount of tokens until a given token is encountered.
-        /// </summary>
-        private int CountTokensWhile(string[] entries, Func<string, bool> compareToken, int startingTokenEntry)
         {
             int tokens = 0;
             for (int x = startingTokenEntry; x < entries.Length; x++)
             {
-                if (! compareToken(entries[x]))
+                if (entries[x] == MaskIgnore)
+                    break;
+
+                tokens += 1;
+            }
+
+            return tokens;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int CountTokensUntilMatch(string[] entries, int startingTokenEntry)
+        {
+            int tokens = 0;
+            for (int x = startingTokenEntry; x < entries.Length; x++)
+            {
+                if (entries[x] != MaskIgnore)
                     break;
 
                 tokens += 1;

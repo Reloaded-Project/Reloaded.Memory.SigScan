@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
+using Reloaded.Memory.Sigscan.Utility;
 
 namespace Reloaded.Memory.Sigscan.Structs
 {
@@ -8,8 +10,9 @@ namespace Reloaded.Memory.Sigscan.Structs
     /// [Internal & Test Use]
     /// Represents the pattern to be searched by the scanner.
     /// </summary>
-    public struct SimplePatternScanData
+    public ref struct SimplePatternScanData
     {
+        private static char[] _maskIgnore = { '?', '?' };
         private static List<byte> _bytes       = new List<byte>(1024);
         private static List<byte> _maskBuilder = new List<byte>(1024);
         private static object _buildLock = new object();
@@ -35,21 +38,24 @@ namespace Reloaded.Memory.Sigscan.Structs
         /// </param>
         public SimplePatternScanData(string stringPattern)
         {
-            string[] segments = stringPattern.Split(' ');
+            var enumerator       = new SpanSplitEnumerator<char>(stringPattern, ' ');
+            var questionMarkFlag = new ReadOnlySpan<char>(_maskIgnore);
+
             lock (_buildLock)
             {
                 _maskBuilder.Clear();
                 _bytes.Clear();
 
-                foreach (var segment in segments)
+                while (enumerator.MoveNext())
                 {
-                    if (segment == "??")
+                    if (enumerator.Current.Equals(questionMarkFlag, StringComparison.Ordinal))
                         _maskBuilder.Add(0x0);
                     else
                     {
-                        _bytes.Add(Convert.ToByte(segment, 16));
+                        _bytes.Add(byte.Parse(enumerator.Current, NumberStyles.AllowHexSpecifier));
                         _maskBuilder.Add(0x1);
                     }
+
                 }
 
                 Mask   = _maskBuilder.ToArray();
