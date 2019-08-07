@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Sewer56</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <Description>Simple high performance byte pattern/PE signature scanner, allowing upwards of 2000MB/s per core on modern hardware.</Description>
+    <Copyright>LGPL V3</Copyright>
+    <PackageId>Reloaded.Memory.Sigscan</PackageId>
+    <PackageProjectUrl>https://github.com/Reloaded-Project/Reloaded.Memory.SigScan</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Reloaded-Project/Reloaded.Memory.SigScan</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIconUrl>https://avatars1.githubusercontent.com/u/45473408</PackageIconUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -14,6 +25,13 @@
 
   <ItemGroup>
     <PackageReference Include="Reloaded.Memory" Version="1.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
