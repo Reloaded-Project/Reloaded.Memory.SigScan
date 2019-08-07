@@ -102,7 +102,7 @@ namespace Reloaded.Memory.Sigscan.Structs
         private unsafe void EncodeSkip(int skip)
         {
             // Add skip instruction.
-            AddInstruction(new GenericInstruction(Instruction.Skip, 0, 0x0F, skip));
+            AddInstruction(new GenericInstruction(Instruction.Skip, 0, 0x0, skip));
         }
 
         private unsafe void EncodeCheck(int bytes, int skip, ref Span<byte> bytesSpan)

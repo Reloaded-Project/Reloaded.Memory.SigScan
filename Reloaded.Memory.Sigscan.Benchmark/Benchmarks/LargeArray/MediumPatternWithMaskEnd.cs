@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
 using Reloaded.Memory.Sigscan.Benchmark.Columns;
 
@@ -20,6 +21,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
             public Config()
             {
                 Add(Job.Core);
+                Add(MarkdownExporter.GitHub);
                 Add(new Speed(3.145404F));
             }
         }

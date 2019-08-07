@@ -88,10 +88,8 @@ namespace Reloaded.Memory.Sigscan
                     {
                         if (instructions[y].Instruction == Instruction.Check)
                         {
-                            long currentValue = *(long*) currentDataPointer;
-                            currentValue     &= instructions[y].Mask;
-
-                            if (currentValue != instructions[y].LongValue)
+                            var compareValue = *(long*) currentDataPointer & instructions[y].Mask;
+                            if (compareValue != instructions[y].LongValue)
                                 goto loopExit;
 
                             currentDataPointer += instructions[y].Skip;

@@ -7,10 +7,10 @@ namespace Reloaded.Memory.Sigscan.Instructions
 {
     public struct GenericInstruction
     {
+        public long LongValue;
+        public long Mask;
         public Instruction Instruction;
-        public int   Skip;
-        public long  LongValue;
-        public long  Mask;
+        public int Skip;
 
         public GenericInstruction(Instruction instruction, long longValue, long mask, int skip)
         {
