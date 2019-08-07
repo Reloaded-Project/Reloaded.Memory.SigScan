@@ -26,7 +26,8 @@ namespace Reloaded.Memory.SigScan.Tests
             string pattern = "11 22 33 ?? 55";
             string[] splitSegments = { "11", "22", "33", "??", "55" };
 
-            var splitEnumerator = new SpanSplitEnumerator<char>(pattern, ' ');
+            // Note: ToCharArray can be omitted in .NET Standard 2.1 and Core 3.0
+            var splitEnumerator = new SpanSplitEnumerator<char>(pattern.ToCharArray(), ' ');
             for (int x = 0; x < splitSegments.Length; x++)
             {
                 Assert.True(splitEnumerator.MoveNext());
@@ -41,7 +42,7 @@ namespace Reloaded.Memory.SigScan.Tests
         {
             string pattern = "11";
 
-            var splitEnumerator = new SpanSplitEnumerator<char>(pattern, ' ');
+            var splitEnumerator = new SpanSplitEnumerator<char>(pattern.ToCharArray(), ' ');
 
             Assert.True(splitEnumerator.MoveNext());
             Assert.Equal("11", splitEnumerator.Current.ToString());
@@ -52,7 +53,7 @@ namespace Reloaded.Memory.SigScan.Tests
         public void StringSplitterEmpty()
         {
             string pattern = "";
-            var splitEnumerator = new SpanSplitEnumerator<char>(pattern, ' ');
+            var splitEnumerator = new SpanSplitEnumerator<char>(pattern.ToCharArray(), ' ');
 
             Assert.True(splitEnumerator.MoveNext());
             Assert.Equal("", splitEnumerator.Current.ToString());

@@ -18,11 +18,25 @@
 	</a>
 </div>
 
+# Table of Contents
 
+- [Introduction](#introduction)
+- [Functionality](#functionality)
+    - [Features](#features)
+        - [Fast, Very Fast](#fast-very-fast)
+        - [Simple to Use](#simple-to-use)
+    - [Future Features](#future-features)
+        - [Wildcards smaller than 1 byte.](#wildcards-smaller-than-1-byte)
+- [Sample Benchmarks](#sample-benchmarks)
+    - [Configuration](#configuration)
+    - [Small Signatures (1-8 bytes)](#small-signatures-1-8-bytes)
+    - [Long Signatures (8+ bytes)](#long-signatures-8-bytes)
+    - [Worst Case Scenario](#worst-case-scenario)
+    - [Other Benchmarks](#other-benchmarks)
 
 # Introduction
 
-
+`Reloaded.Memory.SigScan`, is a pattern matching library for scanning byte signatures. It is biased towards ease of use and most importantly speed, achieving a staggering 2000MB/s on a single processor thread.
 
 # Functionality
 
@@ -32,7 +46,7 @@
 
 Speed is the primary reason this repository exists.
 
-The current implementation, at the time of writing can reach upwards of 2000MB/s on a single core of a modern processor.
+The current implementation, at the time of writing can reach upwards of 2000MB/s on a single thread of a modern processor.
 
 Signature scanning is most often used in malware analysis (AV Software) and game hacking,  however both of those are by far the domain of native C/C++ code. There exists very little on the managed .NET front, this library was written as I was not able to find a .NET signature scanning library that focuses on performance.
 
@@ -48,7 +62,7 @@ int offset		= scanner.CompiledFindPattern("04 25 12 ?? ?? E5 E3");
 **Search an offset in a byte array:**
 ```csharp
 var scanner     = new Scanner(data);
-int offset		= scanner.CompiledFindPattern("02 11 25 AB");
+int offset      = scanner.CompiledFindPattern("02 11 25 AB");
 ```
 
 Patterns are specified as hex values, without prefix and delimited by spaces.
@@ -61,6 +75,7 @@ Here is a short list of features which this pattern matching library does NOT su
 The current implementation of the algorithm can support bit masks for wildcards without any performance deficit. That said, at the current moment in time, the string format parser (in `PatternScanInstructionSet`) only supports byte wildcards. 
 
 This feature doesn't currently exist as I see no necessity for it, yet.
+
 If you are interested in such a feature feel free to provide a pull request with support for different formats.
 
 # Sample Benchmarks
@@ -124,7 +139,7 @@ public int Compiled()
 [Benchmark]
 public int Simple()
 {
-	var result = _scannerFromFile.SimpleFindPattern("9F 43 ?? ?? 43 4F 99 ?? ?? 48"");
+    var result = _scannerFromFile.SimpleFindPattern("9F 43 ?? ?? 43 4F 99 ?? ?? 48"");
     return result.Offset;
 }
 ```
