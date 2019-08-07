@@ -56,7 +56,7 @@ Signature scanning is most often used in malware analysis (AV Software) and game
 ```csharp
 var thisProcess = Process.GetCurrentProcess();
 var scanner     = new Scanner(thisProcess, thisProcess.MainModule);
-int offset		= scanner.CompiledFindPattern("04 25 12 ?? ?? E5 E3");
+int offset      = scanner.CompiledFindPattern("04 25 12 ?? ?? E5 E3");
 ```
 
 **Search an offset in a byte array:**
@@ -104,8 +104,8 @@ This speed does not differ depending on whether there are any wildcards used, so
 [Benchmark]
 public int Compiled()
 {
-	var result = _scannerFromFile.CompiledFindPattern("A0 4E ?? ?? 0E ED");
-	return result.Offset;
+    var result = _scannerFromFile.CompiledFindPattern("A0 4E ?? ?? 0E ED");
+    return result.Offset;
 }
 
 [Benchmark]
