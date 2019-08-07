@@ -1,5 +1,7 @@
 ﻿using System;
 using BenchmarkDotNet.Running;
+using Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray;
+using Reloaded.Memory.Sigscan.Structs;
 
 namespace Reloaded.Memory.Sigscan.Benchmark
 {
@@ -7,18 +9,10 @@ namespace Reloaded.Memory.Sigscan.Benchmark
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            //BenchmarkRunner.Run<ScannerSmallArray>();
-            //BenchmarkRunner.Run<ScannerMediumArray>();
-            BenchmarkRunner.Run<ScannerLargeArray>();
-
-            /*
-            var lrgArr = new ScannerLargeArray();
-            for (int x = 0; x < 10000; x++)
-            {
-                lrgArr.SimpleMediumPatternWithMaskMiddle();
-            }
-            */
+            BenchmarkRunner.Run<ShortPatternEnd>();
+            BenchmarkRunner.Run<MediumPatternEnd>();
+            BenchmarkRunner.Run<MediumPatternWithMaskEnd>();
+            BenchmarkRunner.Run<LongPatternEnd>();
         }
     }
 }

@@ -6,15 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="16KBRandom" />
     <None Remove="1MBRandom" />
+    <None Remove="3MiBRandom" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="16KBRandom">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="1MBRandom">
+    <Content Include="3MiBRandom">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

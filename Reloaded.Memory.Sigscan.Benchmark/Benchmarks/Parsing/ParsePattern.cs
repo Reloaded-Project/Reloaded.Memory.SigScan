@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using Reloaded.Memory.Sigscan.Structs;
 
-namespace Reloaded.Memory.Sigscan.Benchmark
+namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Parsing
 {
     [CoreJob]
     [MemoryDiagnoser]
