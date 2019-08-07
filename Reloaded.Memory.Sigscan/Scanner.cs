@@ -73,7 +73,7 @@ namespace Reloaded.Memory.Sigscan
 
             byte* dataBasePointer = _dataPtr;
             byte* currentDataPointer;
-            int lastIndex = (dataLength - instructionSet.Length) + 1;
+            int lastIndex = dataLength - Math.Max(instructionSet.Length, sizeof(long)) + 1;
 
             // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
             fixed (GenericInstruction* instructions = instructionSet.Instructions)
@@ -84,8 +84,6 @@ namespace Reloaded.Memory.Sigscan
 
                     for (int x = 0; x < lastIndex; x++)
                     {
-                        // Do while saves an initial bounds check (y < numberOfInstructions).
-                        // This can be beneficial when there are not many instructions.
                         currentDataPointer = dataBasePointer + x;
                         var compareValue = *(long*)currentDataPointer & instruction.Mask;
                         if (compareValue != instruction.LongValue)
@@ -94,42 +92,41 @@ namespace Reloaded.Memory.Sigscan
                         return new PatternScanResult(x);
                         singleInstructionLoopExit:;
                     }
+
+                    // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
+                    return SimpleFindPattern(pattern, lastIndex);
                 }
-                else
+
+                for (int x = 0; x < lastIndex; x++)
                 {
-                    for (int x = 0; x < lastIndex; x++)
+                    currentDataPointer = dataBasePointer + x;
+                    int y = 0;
+                    do
                     {
-                        // Do while saves an initial bounds check (y < numberOfInstructions).
-                        // This can be beneficial when there are not many instructions.
-                        currentDataPointer = dataBasePointer + x;
-                        int y = 0;
-                        do
+                        if (instructions[y].Instruction == Instruction.Check)
                         {
-                            if (instructions[y].Instruction == Instruction.Check)
-                            {
-                                var compareValue = *(long*)currentDataPointer & instructions[y].Mask;
-                                if (compareValue != instructions[y].LongValue)
-                                    goto multiInstructionLoopExit;
+                            var compareValue = *(long*)currentDataPointer & instructions[y].Mask;
+                            if (compareValue != instructions[y].LongValue)
+                                goto multiInstructionLoopExit;
 
-                                currentDataPointer += instructions[y].Skip;
-                            }
-                            else
-                            {
-                                currentDataPointer += instructions[y].Skip;
-                            }
-
-                            y++;
+                            currentDataPointer += instructions[y].Skip;
                         }
-                        while (y < numberOfInstructions);
+                        else
+                        {
+                            currentDataPointer += instructions[y].Skip;
+                        }
 
-                        return new PatternScanResult(x);
-                        multiInstructionLoopExit:;
+                        y++;
                     }
-                }
-            }
-            
+                    while (y < numberOfInstructions);
 
-            return new PatternScanResult(-1);
+                    return new PatternScanResult(x);
+                    multiInstructionLoopExit:;
+                }
+
+                // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
+                return SimpleFindPattern(pattern, lastIndex);
+            }
         }
 
         /// <summary>
@@ -142,8 +139,9 @@ namespace Reloaded.Memory.Sigscan
         ///     Example: "11 22 33 ?? 55".
         ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
         /// </param>
+        /// <param name="startingIndex">The index to start searching at.</param>
         /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-        public PatternScanResult SimpleFindPattern(string pattern)
+        public PatternScanResult SimpleFindPattern(string pattern, int startingIndex = 0)
         {
             var target      = new SimplePatternScanData(pattern);
             var patternData = target.Bytes;
@@ -153,7 +151,7 @@ namespace Reloaded.Memory.Sigscan
 
             fixed (byte* patternDataPtr = patternData)
             {
-                for (int x = 0; x < lastIndex; x++)
+                for (int x = startingIndex; x < lastIndex; x++)
                 {
                     int patternDataOffset = 0;
                     int currentIndex = x;
