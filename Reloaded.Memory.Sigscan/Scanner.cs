@@ -78,6 +78,7 @@ namespace Reloaded.Memory.Sigscan
             // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
             fixed (GenericInstruction* instructions = instructionSet.Instructions)
             {
+                // Optimize when there is only one instruction.
                 if (numberOfInstructions == 1 && instructions[0].Instruction != Instruction.Skip)
                 {
                     var instruction = instructions[0];
@@ -85,7 +86,7 @@ namespace Reloaded.Memory.Sigscan
                     for (int x = 0; x < lastIndex; x++)
                     {
                         currentDataPointer = dataBasePointer + x;
-                        var compareValue = *(long*)currentDataPointer & instruction.Mask;
+                        var compareValue = *(ulong*)currentDataPointer & instruction.Mask;
                         if (compareValue != instruction.LongValue)
                             goto singleInstructionLoopExit;
 
@@ -97,6 +98,7 @@ namespace Reloaded.Memory.Sigscan
                     return SimpleFindPattern(pattern, lastIndex);
                 }
 
+                // Else multiple instructions.
                 for (int x = 0; x < lastIndex; x++)
                 {
                     currentDataPointer = dataBasePointer + x;
@@ -105,7 +107,7 @@ namespace Reloaded.Memory.Sigscan
                     {
                         if (instructions[y].Instruction == Instruction.Check)
                         {
-                            var compareValue = *(long*)currentDataPointer & instructions[y].Mask;
+                            var compareValue = *(ulong*)currentDataPointer & instructions[y].Mask;
                             if (compareValue != instructions[y].LongValue)
                                 goto multiInstructionLoopExit;
 

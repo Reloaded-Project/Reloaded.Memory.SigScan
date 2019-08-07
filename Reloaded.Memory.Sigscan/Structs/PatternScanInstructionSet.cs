@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using System.Text;
 using Reloaded.Memory.Sigscan.Instructions;
@@ -49,12 +50,14 @@ namespace Reloaded.Memory.Sigscan.Structs
             return instructionSet;
         }
 
-        private void Initialize(string stringPattern)
+        private unsafe void Initialize(string stringPattern)
         {
             string[] entries = stringPattern.Split(' ');
             Length = entries.Length;
 
-            byte[] bytesToCompare = new byte[entries.Length];
+            // Ensure the array allocation size is sufficient such that dereferencing long at any index
+            // could not possibly reference unallocated memory.
+            byte[] bytesToCompare = new byte[Math.Max(entries.Length, sizeof(long) * 2)];;
             int arrayIndex = 0;
             foreach (var segment in entries)
             {
@@ -67,26 +70,37 @@ namespace Reloaded.Memory.Sigscan.Structs
 
             // Get bytes to make instructions with.
             Instructions  = new GenericInstruction[Length];
-            var bytesSpan = new Span<byte>(bytesToCompare, 0, arrayIndex);
+            var bytesSpan = new Span<byte>(bytesToCompare, 0, bytesToCompare.Length);
 
-            int tokensProcessed = 0;
-            while (tokensProcessed < entries.Length)
+            // Optimization for short-medium patterns with masks.
+            // Check if our pattern is 1-8 bytes and contains any skips.
+            if (entries.Length <= sizeof(long) && 
+                CountTokensUntilSkip(entries, 0) != entries.Length)
             {
-                int bytes = CountTokensUntilSkip(entries, tokensProcessed);
+                GenerateMaskAndValue(entries, out ulong mask, out ulong value);
+                AddInstruction(new GenericInstruction(Instruction.Check, value, mask, 0));
+            }
+            else
+            {
+                int tokensProcessed = 0;
+                while (tokensProcessed < entries.Length)
+                {
+                    int bytes = CountTokensUntilSkip(entries, tokensProcessed);
 
-                if (bytes == 0)
-                {
-                    // No bytes, encode skip.
-                    int skip = CountTokensUntilMatch(entries, tokensProcessed);
-                    EncodeSkip(skip);
-                    tokensProcessed += skip;
-                }
-                else
-                {
-                    // Bytes, now find skip after and encode check!
-                    int skip = CountTokensUntilMatch(entries, tokensProcessed + bytes);
-                    EncodeCheck(bytes, skip, ref bytesSpan);
-                    tokensProcessed += (bytes + skip);
+                    if (bytes == 0)
+                    {
+                        // No bytes, encode skip.
+                        int skip = CountTokensUntilMatch(entries, tokensProcessed);
+                        EncodeSkip(skip);
+                        tokensProcessed += skip;
+                    }
+                    else
+                    {
+                        // Bytes, now find skip after and encode check!
+                        int skip = CountTokensUntilMatch(entries, tokensProcessed + bytes);
+                        EncodeCheck(bytes, skip, ref bytesSpan);
+                        tokensProcessed += (bytes + skip);
+                    }
                 }
             }
         }
@@ -122,8 +136,8 @@ namespace Reloaded.Memory.Sigscan.Structs
                 {
                     if (bytes >= x)
                     {
-                        long mask        = GenerateMask(x);
-                        var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
+                        ulong mask       = GenerateMask(x);
+                        var valueToCheck = *(ulong*)Unsafe.AsPointer(ref bytesSpan[0]);
                         valueToCheck     = valueToCheck & mask;
 
                         if ((bytes - x) > 0)
@@ -142,18 +156,50 @@ namespace Reloaded.Memory.Sigscan.Structs
         /// <summary>
         /// Generates a mask that preserves a given amount of bytes.
         /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        private long GenerateMask(int bytes)
+        private ulong GenerateMask(int numberOfBytes)
         {
-            long mask = 0;
-            for (int x = 0; x < bytes; x++)
+            ulong mask = 0;
+            for (int x = 0; x < numberOfBytes; x++)
             {
                 mask = mask << 8;
                 mask = mask | 0xFF;
             }
 
             return mask;
+        }
+
+        /// <summary>
+        /// Generates a mask given a pattern between size 0-8.
+        /// </summary>
+        private void GenerateMaskAndValue(string[] entries, out ulong mask, out ulong value)
+        {
+            mask  = 0;
+            value = 0;
+            for (int x = 0; x < entries.Length; x++)
+            {
+                mask  = mask  << 8;
+                value = value << 8;
+                if (entries[x] != MaskIgnore)
+                {
+                    mask  = mask | 0xFF;
+                    value = value | byte.Parse(entries[x], NumberStyles.HexNumber);
+                }
+            }
+
+            // Reverse order of value.
+            if (BitConverter.IsLittleEndian)
+            {
+                Endian.Reverse(ref value, out value);
+                Endian.Reverse(ref mask, out mask);
+
+                // Trim excess zeroes.
+                int extraPadding = sizeof(long) - entries.Length;
+                for (int x = 0; x < extraPadding; x++)
+                {
+                    mask  = mask >> 8;
+                    value = value >> 8;
+                }
+            }
         }
 
         /* Retrieves the amount of bytes until the next wildcard character starting with a given entry. */
