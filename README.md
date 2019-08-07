@@ -42,7 +42,7 @@
 
 ### Features
 
-##### Fast, Very Fast
+#### Fast, Very Fast
 
 Speed is the primary reason this repository exists.
 
@@ -50,7 +50,7 @@ The current implementation, at the time of writing can reach upwards of 2000MB/s
 
 Signature scanning is most often used in malware analysis (AV Software) and game hacking,  however both of those are by far the domain of native C/C++ code. There exists very little on the managed .NET front, this library was written as I was not able to find a .NET signature scanning library that focuses on performance.
 
-##### Simple to Use
+#### Simple to Use
 
 **Search the code of the current process**:
 ```csharp
@@ -71,7 +71,7 @@ Patterns are specified as hex values, without prefix and delimited by spaces.
 ### Future Features
 Here is a short list of features which this pattern matching library does NOT support at this current moment in time.
 
-##### Wildcards smaller than 1 byte.
+#### Wildcards smaller than 1 byte.
 The current implementation of the algorithm can support bit masks for wildcards without any performance deficit. That said, at the current moment in time, the string format parser (in `PatternScanInstructionSet`) only supports byte wildcards. 
 
 This feature doesn't currently exist as I see no necessity for it, yet.
