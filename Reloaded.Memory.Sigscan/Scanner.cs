@@ -78,33 +78,53 @@ namespace Reloaded.Memory.Sigscan
             // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
             fixed (GenericInstruction* instructions = instructionSet.Instructions)
             {
-                for (int x = 0; x < lastIndex; x++)
+                if (numberOfInstructions == 1 && instructions[0].Instruction != Instruction.Skip)
                 {
-                    // Do while saves an initial bounds check (y < numberOfInstructions).
-                    // This can be beneficial when there are not many instructions.
-                    currentDataPointer = dataBasePointer + x;
-                    int y = 0;
-                    do
+                    var instruction = instructions[0];
+
+                    for (int x = 0; x < lastIndex; x++)
                     {
-                        if (instructions[y].Instruction == Instruction.Check)
-                        {
-                            var compareValue = *(long*) currentDataPointer & instructions[y].Mask;
-                            if (compareValue != instructions[y].LongValue)
-                                goto loopExit;
+                        // Do while saves an initial bounds check (y < numberOfInstructions).
+                        // This can be beneficial when there are not many instructions.
+                        currentDataPointer = dataBasePointer + x;
+                        var compareValue = *(long*)currentDataPointer & instruction.Mask;
+                        if (compareValue != instruction.LongValue)
+                            goto singleInstructionLoopExit;
 
-                            currentDataPointer += instructions[y].Skip;
-                        }
-                        else
-                        {
-                            currentDataPointer += instructions[y].Skip;
-                        }
-
-                        y++;
+                        return new PatternScanResult(x);
+                        singleInstructionLoopExit:;
                     }
-                    while (y < numberOfInstructions);
+                }
+                else
+                {
+                    for (int x = 0; x < lastIndex; x++)
+                    {
+                        // Do while saves an initial bounds check (y < numberOfInstructions).
+                        // This can be beneficial when there are not many instructions.
+                        currentDataPointer = dataBasePointer + x;
+                        int y = 0;
+                        do
+                        {
+                            if (instructions[y].Instruction == Instruction.Check)
+                            {
+                                var compareValue = *(long*)currentDataPointer & instructions[y].Mask;
+                                if (compareValue != instructions[y].LongValue)
+                                    goto multiInstructionLoopExit;
 
-                    return new PatternScanResult(x);
-                    loopExit:;
+                                currentDataPointer += instructions[y].Skip;
+                            }
+                            else
+                            {
+                                currentDataPointer += instructions[y].Skip;
+                            }
+
+                            y++;
+                        }
+                        while (y < numberOfInstructions);
+
+                        return new PatternScanResult(x);
+                        multiInstructionLoopExit:;
+                    }
                 }
             }
             
