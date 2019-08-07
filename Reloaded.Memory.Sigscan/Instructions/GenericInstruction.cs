@@ -10,13 +10,13 @@ namespace Reloaded.Memory.Sigscan.Instructions
         public Instruction Instruction;
         public int   Skip;
         public long  LongValue;
-        public int   IntValue ;
+        public long  Mask;
 
-        public GenericInstruction(Instruction instruction, long longValue, int skip)
+        public GenericInstruction(Instruction instruction, long longValue, long mask, int skip)
         {
             Instruction = instruction;
             LongValue   = longValue;
-            IntValue    = (int) longValue;
+            Mask        = mask;
             Skip        = skip;
         }
     }

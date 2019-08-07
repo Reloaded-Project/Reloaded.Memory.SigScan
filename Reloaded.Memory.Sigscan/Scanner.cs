@@ -81,31 +81,17 @@ namespace Reloaded.Memory.Sigscan
                 for (int x = 0; x < lastIndex; x++)
                 {
                     // Do while saves an initial bounds check (y < numberOfInstructions).
-                    // This can be benefitial when there are not many instructions.
+                    // This can be beneficial when there are not many instructions.
                     currentDataPointer = dataBasePointer + x;
                     int y = 0;
                     do
                     {
-                        // Do not use Switch statement here.
-                        // Switch statement generates call table, it's slower compared to biased if statement!
-                        // Longs excluded due to bias making them slower, they're encoded as ints.
-                        if (instructions[y].Instruction == Instruction.CheckShort)
+                        if (instructions[y].Instruction == Instruction.Check)
                         {
-                            if (*(short*)currentDataPointer != instructions[y].IntValue)
-                                goto loopExit;
+                            long currentValue = *(long*) currentDataPointer;
+                            currentValue     &= instructions[y].Mask;
 
-                            currentDataPointer += instructions[y].Skip;
-                        }
-                        else if (instructions[y].Instruction == Instruction.CheckByte)
-                        {
-                            if (*currentDataPointer != instructions[y].IntValue)
-                                goto loopExit;
-
-                            currentDataPointer += instructions[y].Skip;
-                        }
-                        else if (instructions[y].Instruction == Instruction.CheckInt)
-                        {
-                            if (*(int*)currentDataPointer != instructions[y].IntValue)
+                            if (currentValue != instructions[y].LongValue)
                                 goto loopExit;
 
                             currentDataPointer += instructions[y].Skip;

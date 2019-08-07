@@ -9,9 +9,9 @@ namespace Reloaded.Memory.Sigscan.Benchmark
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<ShortPatternEnd>();
-            BenchmarkRunner.Run<MediumPatternEnd>();
-            BenchmarkRunner.Run<MediumPatternWithMaskEnd>();
+            //BenchmarkRunner.Run<ShortPatternEnd>();
+            //BenchmarkRunner.Run<MediumPatternEnd>();
+            //BenchmarkRunner.Run<MediumPatternWithMaskEnd>();
             BenchmarkRunner.Run<LongPatternEnd>();
         }
     }

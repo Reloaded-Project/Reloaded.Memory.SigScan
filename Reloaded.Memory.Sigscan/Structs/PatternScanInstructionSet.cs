@@ -102,7 +102,7 @@ namespace Reloaded.Memory.Sigscan.Structs
         private unsafe void EncodeSkip(int skip)
         {
             // Add skip instruction.
-            AddInstruction(new GenericInstruction(Instruction.Skip, 0, skip));
+            AddInstruction(new GenericInstruction(Instruction.Skip, 0, 0x0F, skip));
         }
 
         private unsafe void EncodeCheck(int bytes, int skip, ref Span<byte> bytesSpan)
@@ -110,49 +110,50 @@ namespace Reloaded.Memory.Sigscan.Structs
             // Code now moved to Scanner, inlined as far as it goes.
             // Delegates, or any kind of function calls are too slow.
             // Generics cannot even check for Equality without `Equals`
+
+            // This code can be simplified with a for loop
+            // Note: Longs removed due to bias towards short/byte making them slower.
+            // Encoding longs as int is faster.
+
+            startOfLoop:
             while (bytes > 0)
             {
-                // Note: Longs removed due to bias towards short/byte making them slower.
-                // Encoding longs as int is faster.
-                if (bytes >= sizeof(int))
+                for (int x = sizeof(long); x > 0; x--)
                 {
-                    var valueToCheck = *(int*)Unsafe.AsPointer(ref bytesSpan[0]);
+                    if (bytes >= x)
+                    {
+                        long mask        = GenerateMask(x);
+                        var valueToCheck = *(long*)Unsafe.AsPointer(ref bytesSpan[0]);
+                        valueToCheck     = valueToCheck & mask;
 
-                    if (bytes - sizeof(int) > 0)
-                        AddInstruction(new GenericInstruction(Instruction.CheckInt, valueToCheck, sizeof(int)));
-                    else
-                        AddInstruction(new GenericInstruction(Instruction.CheckInt, valueToCheck, skip + sizeof(int)));
+                        if ((bytes - x) > 0)
+                            AddInstruction(new GenericInstruction(Instruction.Check, valueToCheck, mask, x));
+                        else
+                            AddInstruction(new GenericInstruction(Instruction.Check, valueToCheck, mask, skip + x));
 
-                    bytesSpan = bytesSpan.Slice(sizeof(int));
-                    bytes -= sizeof(int);
-                }
-
-                else if (bytes >= sizeof(short))
-                {
-                    var valueToCheck = *(short*)Unsafe.AsPointer(ref bytesSpan[0]);
-
-                    if (bytes - sizeof(short) > 0)
-                        AddInstruction(new GenericInstruction(Instruction.CheckShort, valueToCheck, sizeof(short)));
-                    else
-                        AddInstruction(new GenericInstruction(Instruction.CheckShort, valueToCheck, skip + sizeof(short)));
-
-                    bytesSpan = bytesSpan.Slice(sizeof(short));
-                    bytes -= sizeof(short);
-                }
-
-                else if (bytes >= sizeof(byte))
-                {
-                    var valueToCheck = *(byte*)Unsafe.AsPointer(ref bytesSpan[0]);
-
-                    if (bytes - sizeof(byte) > 0)
-                        AddInstruction(new GenericInstruction(Instruction.CheckByte, valueToCheck, sizeof(byte)));
-                    else
-                        AddInstruction(new GenericInstruction(Instruction.CheckByte, valueToCheck, skip + sizeof(byte)));
-
-                    bytesSpan = bytesSpan.Slice(sizeof(byte));
-                    bytes -= sizeof(byte);
+                        bytesSpan = bytesSpan.Slice(x);
+                        bytes -= x;
+                        goto startOfLoop;
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// Generates a mask that preserves a given amount of bytes.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        private long GenerateMask(int bytes)
+        {
+            long mask = 0;
+            for (int x = 0; x < bytes; x++)
+            {
+                mask = mask << 8;
+                mask = mask | 0xFF;
+            }
+
+            return mask;
         }
 
         /* Retrieves the amount of bytes until the next wildcard character starting with a given entry. */
