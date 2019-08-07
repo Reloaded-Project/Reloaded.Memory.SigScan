@@ -97,7 +97,7 @@ namespace Reloaded.Memory.SigScan.Tests
         {
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("7A BB");
-            var resultSimple   = scanner.CompiledFindPattern("7A BB");
+            var resultSimple   = scanner.SimpleFindPattern("7A BB");
 
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
