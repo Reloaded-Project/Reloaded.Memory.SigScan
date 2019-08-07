@@ -14,7 +14,7 @@
 	</a>
 	<!-- Build Status -->
 	<a href="https://ci.appveyor.com/project/sewer56lol/reloaded-memory-sigscan">
-		<img src="" alt="Build Status" />
+		<img src="https://ci.appveyor.com/api/projects/status/7ayrf21ggo6ji2e0?svg=true" alt="Build Status" />
 	</a>
 </div>
 
