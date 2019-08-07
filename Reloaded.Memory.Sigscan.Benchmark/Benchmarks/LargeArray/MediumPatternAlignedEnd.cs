@@ -17,7 +17,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
             public Config()
             {
                 Add(Job.Core);
-                Add(new Speed(3.145717F));
+                Add(new Speed(3.145718F));
             }
         }
 

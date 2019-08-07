@@ -2,7 +2,6 @@
 {
     public enum Instruction
     {
-        Skip       = 0,
-        Check      = 1,
+        Check      = 0,
     }
 }

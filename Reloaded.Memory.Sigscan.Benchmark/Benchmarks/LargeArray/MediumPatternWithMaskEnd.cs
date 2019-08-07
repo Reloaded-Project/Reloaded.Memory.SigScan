@@ -22,7 +22,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
             {
                 Add(Job.Core);
                 Add(MarkdownExporter.GitHub);
-                Add(new Speed(3.145404F));
+                Add(new Speed(3.145405F));
             }
         }
 

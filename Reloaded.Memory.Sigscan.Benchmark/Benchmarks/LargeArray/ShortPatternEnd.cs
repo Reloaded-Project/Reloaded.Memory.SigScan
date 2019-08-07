@@ -19,7 +19,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
             {
                 Add(Job.Core);
                 Add(MarkdownExporter.GitHub);
-                Add(new Speed(3.145716F));
+                Add(new Speed(3.145717F));
             }
         }
 

@@ -78,56 +78,57 @@ namespace Reloaded.Memory.Sigscan
             // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
             fixed (GenericInstruction* instructions = instructionSet.Instructions)
             {
-                // Optimize when there is only one instruction.
-                if (numberOfInstructions == 1 && instructions[0].Instruction != Instruction.Skip)
-                {
-                    var instruction = instructions[0];
+                var firstInstruction = instructions[0];
 
-                    for (int x = 0; x < lastIndex; x++)
-                    {
-                        currentDataPointer = dataBasePointer + x;
-                        var compareValue = *(ulong*)currentDataPointer & instruction.Mask;
-                        if (compareValue != instruction.LongValue)
-                            goto singleInstructionLoopExit;
+                /*
+                    There is an optimization going on in here apart from manual inlining which is why
+                    this function is a tiny mess of more goto statements than it seems necessary.
 
-                        return new PatternScanResult(x);
-                        singleInstructionLoopExit:;
-                    }
+                    Basically, it is considerably faster to reference a variable on the stack, than it is on the heap.
+                
+                    This is because the compiler can address the stack bound variable relative to the current stack pointer,
+                    as opposing to having to dereference a pointer and then take an offset from the result address.
+                    
+                    This ends up being considerably faster, which is important in a scenario where we are entirely CPU bound.
+                */
 
-                    // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-                    return SimpleFindPattern(pattern, lastIndex);
-                }
-
-                // Else multiple instructions.
-                for (int x = 0; x < lastIndex; x++)
+                int x = 0;
+                while (x < lastIndex)
                 {
                     currentDataPointer = dataBasePointer + x;
-                    int y = 0;
+                    var compareValue = *(ulong*)currentDataPointer & firstInstruction.Mask;
+                    if (compareValue != firstInstruction.LongValue)
+                        goto singleInstructionLoopExit;
+
+                    if (numberOfInstructions <= 1)
+                        return new PatternScanResult(x);
+
+                    /* When NumberOfInstructions > 1 */
+                    currentDataPointer += sizeof(ulong);
+                    int y = 1;
                     do
                     {
-                        if (instructions[y].Instruction == Instruction.Check)
-                        {
-                            var compareValue = *(ulong*)currentDataPointer & instructions[y].Mask;
-                            if (compareValue != instructions[y].LongValue)
-                                goto multiInstructionLoopExit;
+                        compareValue = *(ulong*)currentDataPointer & instructions[y].Mask;
+                        if (compareValue != instructions[y].LongValue)
+                            goto singleInstructionLoopExit;
 
-                            currentDataPointer += instructions[y].Skip;
-                        }
-                        else
-                        {
-                            currentDataPointer += instructions[y].Skip;
-                        }
-
+                        currentDataPointer += sizeof(ulong);
                         y++;
                     }
                     while (y < numberOfInstructions);
 
                     return new PatternScanResult(x);
-                    multiInstructionLoopExit:;
+
+                    singleInstructionLoopExit:;
+                    x++;
                 }
+                
 
                 // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
                 return SimpleFindPattern(pattern, lastIndex);
+
+                // PS. This function is a prime example why the `goto` statement is frowned upon.
+                // I have to use it here for performance though.
             }
         }
 

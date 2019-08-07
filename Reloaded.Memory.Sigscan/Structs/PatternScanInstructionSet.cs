@@ -70,38 +70,16 @@ namespace Reloaded.Memory.Sigscan.Structs
 
             // Get bytes to make instructions with.
             Instructions  = new GenericInstruction[Length];
-            var bytesSpan = new Span<byte>(bytesToCompare, 0, bytesToCompare.Length);
 
             // Optimization for short-medium patterns with masks.
             // Check if our pattern is 1-8 bytes and contains any skips.
-            if (entries.Length <= sizeof(long) && 
-                CountTokensUntilSkip(entries, 0) != entries.Length)
+            var spanEntries = new Span<string>(entries, 0, entries.Length);
+            while (spanEntries.Length > 0)
             {
-                GenerateMaskAndValue(entries, out ulong mask, out ulong value);
-                AddInstruction(new GenericInstruction(Instruction.Check, value, mask, 0));
-            }
-            else
-            {
-                int tokensProcessed = 0;
-                while (tokensProcessed < entries.Length)
-                {
-                    int bytes = CountTokensUntilSkip(entries, tokensProcessed);
-
-                    if (bytes == 0)
-                    {
-                        // No bytes, encode skip.
-                        int skip = CountTokensUntilMatch(entries, tokensProcessed);
-                        EncodeSkip(skip);
-                        tokensProcessed += skip;
-                    }
-                    else
-                    {
-                        // Bytes, now find skip after and encode check!
-                        int skip = CountTokensUntilMatch(entries, tokensProcessed + bytes);
-                        EncodeCheck(bytes, skip, ref bytesSpan);
-                        tokensProcessed += (bytes + skip);
-                    }
-                }
+                int nextSliceLength = Math.Min(sizeof(long), spanEntries.Length);
+                GenerateMaskAndValue(spanEntries.Slice(0, nextSliceLength), out ulong mask, out ulong value);
+                AddInstruction(new GenericInstruction(value, mask));
+                spanEntries = spanEntries.Slice(nextSliceLength);
             }
         }
 
@@ -112,66 +90,10 @@ namespace Reloaded.Memory.Sigscan.Structs
             NumberOfInstructions++;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void EncodeSkip(int skip)
-        {
-            // Add skip instruction.
-            AddInstruction(new GenericInstruction(Instruction.Skip, 0, 0x0, skip));
-        }
-
-        private unsafe void EncodeCheck(int bytes, int skip, ref Span<byte> bytesSpan)
-        {
-            // Code now moved to Scanner, inlined as far as it goes.
-            // Delegates, or any kind of function calls are too slow.
-            // Generics cannot even check for Equality without `Equals`
-
-            // This code can be simplified with a for loop
-            // Note: Longs removed due to bias towards short/byte making them slower.
-            // Encoding longs as int is faster.
-
-            startOfLoop:
-            while (bytes > 0)
-            {
-                for (int x = sizeof(long); x > 0; x--)
-                {
-                    if (bytes >= x)
-                    {
-                        ulong mask       = GenerateMask(x);
-                        var valueToCheck = *(ulong*)Unsafe.AsPointer(ref bytesSpan[0]);
-                        valueToCheck     = valueToCheck & mask;
-
-                        if ((bytes - x) > 0)
-                            AddInstruction(new GenericInstruction(Instruction.Check, valueToCheck, mask, x));
-                        else
-                            AddInstruction(new GenericInstruction(Instruction.Check, valueToCheck, mask, skip + x));
-
-                        bytesSpan = bytesSpan.Slice(x);
-                        bytes -= x;
-                        goto startOfLoop;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Generates a mask that preserves a given amount of bytes.
-        /// </summary>
-        private ulong GenerateMask(int numberOfBytes)
-        {
-            ulong mask = 0;
-            for (int x = 0; x < numberOfBytes; x++)
-            {
-                mask = mask << 8;
-                mask = mask | 0xFF;
-            }
-
-            return mask;
-        }
-
         /// <summary>
         /// Generates a mask given a pattern between size 0-8.
         /// </summary>
-        private void GenerateMaskAndValue(string[] entries, out ulong mask, out ulong value)
+        private void GenerateMaskAndValue(Span<string> entries, out ulong mask, out ulong value)
         {
             mask  = 0;
             value = 0;
@@ -200,39 +122,6 @@ namespace Reloaded.Memory.Sigscan.Structs
                     value = value >> 8;
                 }
             }
-        }
-
-        /* Retrieves the amount of bytes until the next wildcard character starting with a given entry. */
-
-        // The code below has been inlined because it is frequently called to help aid performance.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int CountTokensUntilSkip(string[] entries, int startingTokenEntry)
-        {
-            int tokens = 0;
-            for (int x = startingTokenEntry; x < entries.Length; x++)
-            {
-                if (entries[x] == MaskIgnore)
-                    break;
-
-                tokens += 1;
-            }
-
-            return tokens;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int CountTokensUntilMatch(string[] entries, int startingTokenEntry)
-        {
-            int tokens = 0;
-            for (int x = startingTokenEntry; x < entries.Length; x++)
-            {
-                if (entries[x] != MaskIgnore)
-                    break;
-
-                tokens += 1;
-            }
-
-            return tokens;
         }
     }
 }

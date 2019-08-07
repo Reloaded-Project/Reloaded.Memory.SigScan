@@ -38,7 +38,7 @@ namespace Reloaded.Memory.SigScan.Tests
         {
             // Test fails if function throws.
             var thisProcess = Process.GetCurrentProcess();
-            var scanner = new Scanner(thisProcess, thisProcess.MainModule);
+            var scanner     = new Scanner(thisProcess, thisProcess.MainModule);
 
             Assert.NotEmpty(scanner.Data);
             Assert.NotNull (scanner.Data);
@@ -102,6 +102,18 @@ namespace Reloaded.Memory.SigScan.Tests
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
             Assert.Equal(254, resultCompiled.Offset);
+        }
+
+        [Fact]
+        public void FindFirstByte()
+        {
+            var scanner = new Scanner(_data);
+            var resultCompiled = scanner.CompiledFindPattern("D3 B2 7A");
+            var resultSimple = scanner.SimpleFindPattern("D3 B2 7A");
+
+            Assert.Equal(resultCompiled, resultSimple);
+            Assert.True(resultCompiled.Found);
+            Assert.Equal(0, resultCompiled.Offset);
         }
 
         [Fact]

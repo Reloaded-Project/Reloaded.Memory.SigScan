@@ -38,7 +38,11 @@ namespace Reloaded.Memory.Sigscan.Structs
         /// </param>
         public SimplePatternScanData(string stringPattern)
         {
+#if SPAN_API
             var enumerator       = new SpanSplitEnumerator<char>(stringPattern, ' ');
+#else
+            var enumerator       = new SpanSplitEnumerator<char>(new ReadOnlySpan<char>(stringPattern.ToCharArray()), ' ');
+#endif
             var questionMarkFlag = new ReadOnlySpan<char>(_maskIgnore);
 
             lock (_buildLock)
@@ -52,7 +56,11 @@ namespace Reloaded.Memory.Sigscan.Structs
                         _maskBuilder.Add(0x0);
                     else
                     {
+#if SPAN_API
                         _bytes.Add(byte.Parse(enumerator.Current, NumberStyles.AllowHexSpecifier));
+#else
+                        _bytes.Add(byte.Parse(enumerator.Current.ToString(), NumberStyles.AllowHexSpecifier));
+#endif
                         _maskBuilder.Add(0x1);
                     }
 

@@ -8,10 +8,14 @@
   <ItemGroup>
     <None Remove="1MBRandom" />
     <None Remove="3MiBRandom" />
+    <None Remove="WorstCaseScenario" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="3MiBRandom">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WorstCaseScenario">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

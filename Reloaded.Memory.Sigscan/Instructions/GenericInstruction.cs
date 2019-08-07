@@ -9,15 +9,11 @@ namespace Reloaded.Memory.Sigscan.Instructions
     {
         public ulong LongValue;
         public ulong Mask;
-        public Instruction Instruction;
-        public int Skip;
 
-        public GenericInstruction(Instruction instruction, ulong longValue, ulong mask, int skip)
+        public GenericInstruction(ulong longValue, ulong mask)
         {
-            Instruction = instruction;
             LongValue   = longValue;
             Mask        = mask;
-            Skip        = skip;
         }
     }
 }
