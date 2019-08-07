@@ -1,6 +1,7 @@
 ﻿using System;
 using BenchmarkDotNet.Running;
 using Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray;
+using Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Parsing;
 using Reloaded.Memory.Sigscan.Structs;
 
 namespace Reloaded.Memory.Sigscan.Benchmark
@@ -14,6 +15,8 @@ namespace Reloaded.Memory.Sigscan.Benchmark
             BenchmarkRunner.Run<MediumPatternWithMaskEnd>();
             BenchmarkRunner.Run<MediumPatternAlignedEnd>();
             BenchmarkRunner.Run<LongPatternEnd>();
+            BenchmarkRunner.Run<ParsePattern>();
+            BenchmarkRunner.Run<StringParsing>();
         }
     }
 }

@@ -189,8 +189,8 @@ namespace Reloaded.Memory.Sigscan.Structs
             // Reverse order of value.
             if (BitConverter.IsLittleEndian)
             {
-                Endian.Reverse(ref value, out value);
-                Endian.Reverse(ref mask, out mask);
+                Endian.Reverse(ref value);
+                Endian.Reverse(ref mask);
 
                 // Trim excess zeroes.
                 int extraPadding = sizeof(long) - entries.Length;
