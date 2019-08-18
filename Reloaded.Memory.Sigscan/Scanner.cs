@@ -143,8 +143,9 @@ namespace Reloaded.Memory.Sigscan
         ///     Example: "11 22 33 ?? 55".
         ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
         /// </param>
+        /// <param name="expectedResults">Expected amount of results.</param>
         /// <returns>A list of offsets pointing to every occurrence. It will be empty if nothing was found.</returns>
-        public List<int> CompiledFindAllPatterns(string pattern)
+        public List<int> CompiledFindAllPatterns(string pattern, int expectedResults = 100)
         {
             // Note: This function is an exact copy of CompiledFindPattern due to performance reasons.
 
@@ -156,7 +157,7 @@ namespace Reloaded.Memory.Sigscan
             byte* currentDataPointer;
             int lastIndex = dataLength - Math.Max(instructionSet.Length, sizeof(long)) + 1;
 
-            var offsets = new List<int>();
+            var offsets = new List<int>(expectedResults);
 
             fixed (GenericInstruction* instructions = instructionSet.Instructions)
             {
@@ -195,7 +196,8 @@ namespace Reloaded.Memory.Sigscan
                     x++;
                 }
 
-                return offsets.Count == 0 ? SimpleFindAllPatterns(pattern, lastIndex) : offsets;
+                SimpleFindAllPatterns(pattern, lastIndex, offsets);
+                return offsets;
             }
         }
 
@@ -266,16 +268,17 @@ namespace Reloaded.Memory.Sigscan
         ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
         /// </param>
         /// <param name="startingIndex">The index to start searching at.</param>
+        /// <param name="offsets">(Optional) List of existing offsets.</param>
         /// <returns>A list of offsets pointing to every occurrence. It will be empty if nothing was found.</returns>
-        public List<int> SimpleFindAllPatterns(string pattern, int startingIndex = 0)
+        public List<int> SimpleFindAllPatterns(string pattern, int startingIndex = 0, List<int> offsets = null)
         {
             // Note: This function is an exact copy of SimpleFindPattern due to performance reasons.
-
             var target = new SimplePatternScanData(pattern);
             var patternData = target.Bytes;
             var patternMask = target.Mask;
 
-            var offsets = new List<int>();
+            if (offsets == null)
+                offsets = new List<int>();
 
             int lastIndex = (_data.Span.Length - patternMask.Length) + 1;
 
