@@ -28,4 +28,10 @@
     <ProjectReference Include="..\Reloaded.Memory.Sigscan\Reloaded.Memory.Sigscan.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="3MiBData">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

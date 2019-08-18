@@ -16,6 +16,8 @@ namespace Reloaded.Memory.Sigscan.Benchmark
             BenchmarkRunner.Run<MediumPatternAlignedEnd>();
             BenchmarkRunner.Run<LongPatternEnd>();
             BenchmarkRunner.Run<LongPatternWithMaskEnd>();
+            BenchmarkRunner.Run<PatternsWithMask>();
+            BenchmarkRunner.Run<Patterns>();
             BenchmarkRunner.Run<ParsePattern>();
             BenchmarkRunner.Run<StringParsing>();
             BenchmarkRunner.Run<WorstCaseScenario>();

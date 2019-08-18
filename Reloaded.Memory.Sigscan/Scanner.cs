@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Numerics;
@@ -133,6 +134,72 @@ namespace Reloaded.Memory.Sigscan
         }
 
         /// <summary>
+        /// Attempts to find all occurrences of a given pattern inside the memory region this class was created with.
+        /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
+        /// This method generally works better when the expected offset is bigger than 4096.
+        /// </summary>
+        /// <param name="pattern">
+        ///     The pattern to look for inside the given region.
+        ///     Example: "11 22 33 ?? 55".
+        ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+        /// </param>
+        /// <returns>A list of offsets pointing to every occurrence. It will be empty if nothing was found.</returns>
+        public List<int> CompiledFindAllPatterns(string pattern)
+        {
+            // Note: This function is an exact copy of CompiledFindPattern due to performance reasons.
+
+            var instructionSet = PatternScanInstructionSet.FromStringPattern(pattern);
+            int numberOfInstructions = instructionSet.NumberOfInstructions;
+            int dataLength = _data.Length;
+
+            byte* dataBasePointer = _dataPtr;
+            byte* currentDataPointer;
+            int lastIndex = dataLength - Math.Max(instructionSet.Length, sizeof(long)) + 1;
+
+            var offsets = new List<int>();
+
+            fixed (GenericInstruction* instructions = instructionSet.Instructions)
+            {
+                var firstInstruction = instructions[0];
+
+                int x = 0;
+                while (x < lastIndex)
+                {
+                    currentDataPointer = dataBasePointer + x;
+                    var compareValue = *(ulong*)currentDataPointer & firstInstruction.Mask;
+                    if (compareValue != firstInstruction.LongValue)
+                        goto singleInstructionLoopExit;
+
+                    if (numberOfInstructions <= 1)
+                    {
+                        offsets.Add(x);
+                        goto singleInstructionLoopExit;
+                    }
+
+                    currentDataPointer += sizeof(ulong);
+                    int y = 1;
+                    do
+                    {
+                        compareValue = *(ulong*)currentDataPointer & instructions[y].Mask;
+                        if (compareValue != instructions[y].LongValue)
+                            goto singleInstructionLoopExit;
+
+                        currentDataPointer += sizeof(ulong);
+                        y++;
+                    }
+                    while (y < numberOfInstructions);
+
+                    offsets.Add(x);
+
+                singleInstructionLoopExit:;
+                    x++;
+                }
+
+                return offsets.Count == 0 ? SimpleFindAllPatterns(pattern, lastIndex) : offsets;
+            }
+        }
+
+        /// <summary>
         /// Attempts to find a given pattern inside the memory region this class was created with.
         /// This method uses the simple search, which simply iterates over all bytes, reading max 1 byte at once.
         /// This method generally works better when the expected offset is smaller than 4096.
@@ -185,6 +252,64 @@ namespace Reloaded.Memory.Sigscan
                 }
 
                 return new PatternScanResult(-1);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to find all occurrences of a given pattern inside the memory region this class was created with.
+        /// This method uses the simple search, which simply iterates over all bytes, reading max 1 byte at once.
+        /// This method generally works better when the expected offset is smaller than 4096.
+        /// </summary>
+        /// <param name="pattern">
+        ///     The pattern to look for inside the given region.
+        ///     Example: "11 22 33 ?? 55".
+        ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+        /// </param>
+        /// <param name="startingIndex">The index to start searching at.</param>
+        /// <returns>A list of offsets pointing to every occurrence. It will be empty if nothing was found.</returns>
+        public List<int> SimpleFindAllPatterns(string pattern, int startingIndex = 0)
+        {
+            // Note: This function is an exact copy of SimpleFindPattern due to performance reasons.
+
+            var target = new SimplePatternScanData(pattern);
+            var patternData = target.Bytes;
+            var patternMask = target.Mask;
+
+            var offsets = new List<int>();
+
+            int lastIndex = (_data.Span.Length - patternMask.Length) + 1;
+
+            fixed (byte* patternDataPtr = patternData)
+            {
+                for (int x = startingIndex; x < lastIndex; x++)
+                {
+                    int patternDataOffset = 0;
+                    int currentIndex = x;
+
+                    int y = 0;
+                    do
+                    {
+                        if (patternMask[y] == 0x0)
+                        {
+                            currentIndex += 1;
+                            y++;
+                            continue;
+                        }
+
+                        if (_dataPtr[currentIndex] != patternDataPtr[patternDataOffset])
+                            goto loopexit;
+
+                        currentIndex += 1;
+                        patternDataOffset += 1;
+                        y++;
+                    }
+                    while (y < patternMask.Length);
+
+                    offsets.Add(x);
+                loopexit:;
+                }
+
+                return offsets;
             }
         }
     }
