@@ -7,11 +7,15 @@
 
   <ItemGroup>
     <None Remove="1MBRandom" />
+    <None Remove="3MiBData" />
     <None Remove="3MiBRandom" />
     <None Remove="WorstCaseScenario" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="3MiBData">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="3MiBRandom">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -26,12 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Reloaded.Memory.Sigscan\Reloaded.Memory.Sigscan.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="3MiBData">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
