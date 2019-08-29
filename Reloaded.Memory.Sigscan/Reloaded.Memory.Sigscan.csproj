@@ -14,9 +14,12 @@
     <RepositoryType>git</RepositoryType>
     <PackageIconUrl>https://avatars1.githubusercontent.com/u/45473408</PackageIconUrl>
 
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DefineConstants Condition="'$(TargetFramework)' == 'netstandard2.1'">$(DefineConstants);SPAN_API</DefineConstants>
 
     <LangVersion>latest</LangVersion>
+
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
