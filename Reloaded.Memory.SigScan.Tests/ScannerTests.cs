@@ -39,9 +39,6 @@ namespace Reloaded.Memory.SigScan.Tests
             // Test fails if function throws.
             var thisProcess = Process.GetCurrentProcess();
             var scanner     = new Scanner(thisProcess, thisProcess.MainModule);
-
-            Assert.NotEmpty(scanner.Data);
-            Assert.NotNull (scanner.Data);
         }
 
         [Fact]

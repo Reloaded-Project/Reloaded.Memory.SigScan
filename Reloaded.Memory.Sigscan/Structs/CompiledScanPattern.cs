@@ -12,17 +12,21 @@ using Reloaded.Memory.Sigscan.Instructions;
 namespace Reloaded.Memory.Sigscan.Structs
 {
     /// <summary>
-    /// [Internal & Test Use]
     /// Represents the pattern to be searched by the scanner.
     /// </summary>
-    public ref struct PatternScanInstructionSet
+    public ref struct CompiledScanPattern
     {
         private const  string MaskIgnore      = "??";
 
         /// <summary>
+        /// The pattern the instruction set was created from.
+        /// </summary>
+        public readonly string Pattern;
+
+        /// <summary>
         /// The length of the original given pattern.
         /// </summary>
-        public int Length;
+        public readonly int Length;
 
         /// <summary>
         /// Contains the functions that will be executed in order to validate a given block of memory to equal
@@ -43,15 +47,9 @@ namespace Reloaded.Memory.Sigscan.Structs
         ///     Example: "11 22 33 ?? 55".
         ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F.
         /// </param>
-        public static PatternScanInstructionSet FromStringPattern(string stringPattern)
+        public CompiledScanPattern(string stringPattern)
         {
-            var instructionSet = new PatternScanInstructionSet();
-            instructionSet.Initialize(stringPattern);
-            return instructionSet;
-        }
-
-        private unsafe void Initialize(string stringPattern)
-        {
+            Pattern = stringPattern;
             string[] entries = stringPattern.Split(' ');
             Length = entries.Length;
 
@@ -70,6 +68,7 @@ namespace Reloaded.Memory.Sigscan.Structs
 
             // Get bytes to make instructions with.
             Instructions  = new GenericInstruction[Length];
+            NumberOfInstructions = 0;
 
             // Optimization for short-medium patterns with masks.
             // Check if our pattern is 1-8 bytes and contains any skips.
