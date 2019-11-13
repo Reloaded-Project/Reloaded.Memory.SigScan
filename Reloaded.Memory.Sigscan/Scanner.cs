@@ -16,16 +16,12 @@ namespace Reloaded.Memory.Sigscan
     /// <summary>
     /// Provides an implementation of a simple signature scanner sitting ontop of Reloaded.Memory.
     /// </summary>
-    public unsafe class Scanner
+    public unsafe class Scanner : IDisposable
     {
-        /// <summary>
-        /// The region of data to be scanned for signatures.
-        /// </summary>
-        public byte[] Data => _data.ToArray();
-        private Memory<byte>  _data;
-
-        private GCHandle _gcHandle;
+        private bool _disposedValue;
+        private GCHandle? _gcHandle;
         private byte*     _dataPtr;
+        private int    _dataLength;
 
         /// <summary>
         /// Creates a signature scanner given the data in which patterns are to be found.
@@ -33,9 +29,9 @@ namespace Reloaded.Memory.Sigscan
         /// <param name="data">The data to look for signatures inside.</param>
         public Scanner(byte[] data)
         {
-            _data = data;
             _gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            _dataPtr  = (byte*) _gcHandle.AddrOfPinnedObject();
+            _dataPtr  = (byte*)_gcHandle.Value.AddrOfPinnedObject();
+            _dataLength = data.Length;
         }
 
         /// <summary>
@@ -49,9 +45,25 @@ namespace Reloaded.Memory.Sigscan
             var externalProcess = new ExternalMemory(process);
             externalProcess.ReadRaw(module.BaseAddress, out var data, module.ModuleMemorySize);
 
-            _data = data;
             _gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            _dataPtr = (byte*)_gcHandle.AddrOfPinnedObject();
+            _dataPtr = (byte*)_gcHandle.Value.AddrOfPinnedObject();
+            _dataLength = data.Length;
+        }
+
+        /// <summary>
+        /// Creates a signature scanner given the data in which patterns are to be found.
+        /// </summary>
+        /// <param name="data">The data to look for signatures inside.</param>
+        /// <param name="length">The length of the data.</param>
+        public Scanner(byte* data, int length)
+        {
+            _dataPtr = data;
+            _dataLength = length;
+        }
+
+        ~Scanner()
+        {
+            Dispose(false);
         }
 
         /// <summary>
@@ -67,16 +79,27 @@ namespace Reloaded.Memory.Sigscan
         /// <returns>A result indicating an offset (if found) of the pattern.</returns>
         public PatternScanResult CompiledFindPattern(string pattern)
         {
-            var instructionSet = PatternScanInstructionSet.FromStringPattern(pattern);
-            int numberOfInstructions = instructionSet.NumberOfInstructions;
-            int dataLength     = _data.Length;
+            var instructionSet = new CompiledScanPattern(pattern);
+            return CompiledFindPattern(instructionSet);
+        }
 
+        /// <summary>
+        /// Attempts to find a given pattern inside the memory region this class was created with.
+        /// This method generally works better when the expected offset is bigger than 4096.
+        /// </summary>
+        /// <param name="pattern">
+        ///     The compiled pattern to look for inside the given region.
+        /// </param>
+        /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+        public PatternScanResult CompiledFindPattern(CompiledScanPattern pattern)
+        {
+            int numberOfInstructions = pattern.NumberOfInstructions;
             byte* dataBasePointer = _dataPtr;
             byte* currentDataPointer;
-            int lastIndex = dataLength - Math.Max(instructionSet.Length, sizeof(long)) + 1;
+            int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(long)) + 1;
 
             // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
-            fixed (GenericInstruction* instructions = instructionSet.Instructions)
+            fixed (GenericInstruction* instructions = pattern.Instructions)
             {
                 var firstInstruction = instructions[0];
 
@@ -125,7 +148,7 @@ namespace Reloaded.Memory.Sigscan
                 
 
                 // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-                return SimpleFindPattern(pattern, lastIndex);
+                return SimpleFindPattern(pattern.Pattern, lastIndex);
 
                 // PS. This function is a prime example why the `goto` statement is frowned upon.
                 // I have to use it here for performance though.
@@ -150,7 +173,7 @@ namespace Reloaded.Memory.Sigscan
             var patternData = target.Bytes;
             var patternMask = target.Mask;
 
-            int lastIndex   = (_data.Span.Length - patternMask.Length) + 1;
+            int lastIndex   = (_dataLength - patternMask.Length) + 1;
 
             fixed (byte* patternDataPtr = patternData)
             {
@@ -186,6 +209,26 @@ namespace Reloaded.Memory.Sigscan
 
                 return new PatternScanResult(-1);
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _gcHandle?.Free();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
