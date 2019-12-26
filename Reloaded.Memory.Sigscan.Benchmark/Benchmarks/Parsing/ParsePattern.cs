@@ -10,9 +10,9 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Parsing
     {
         // With Mask
         [Benchmark]
-        public PatternScanInstructionSet MakeInstructionSetWithMask()
+        public CompiledScanPattern MakeInstructionSetWithMask()
         {
-            return new PatternScanInstructionSet("DA 69 ?? ?? FE B9");
+            return new CompiledScanPattern("DA 69 ?? ?? FE B9");
         }
 
         [Benchmark]
@@ -23,9 +23,9 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Parsing
 
         // Without Mask
         [Benchmark]
-        public PatternScanInstructionSet MakeInstructionSetWithoutMask()
+        public CompiledScanPattern MakeInstructionSetWithoutMask()
         {
-            return new PatternScanInstructionSet("DA 69 DD AA FE B9");
+            return new CompiledScanPattern("DA 69 DD AA FE B9");
         }
 
         [Benchmark]
@@ -36,9 +36,9 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Parsing
 
         // No Mask + Long
         [Benchmark]
-        public PatternScanInstructionSet MakeInstructionSetWithoutMaskLong()
+        public CompiledScanPattern MakeInstructionSetWithoutMaskLong()
         {
-            return new PatternScanInstructionSet("DA 69 DD AA FE B9 BB CC DD EE FF");
+            return new CompiledScanPattern("DA 69 DD AA FE B9 BB CC DD EE FF");
         }
 
         [Benchmark]
