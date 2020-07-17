@@ -90,8 +90,9 @@ namespace Reloaded.Memory.Sigscan
         /// <param name="pattern">
         ///     The compiled pattern to look for inside the given region.
         /// </param>
+        /// <param name="startingIndex">The index to start searching at.</param>
         /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-        public PatternScanResult CompiledFindPattern(CompiledScanPattern pattern)
+        public PatternScanResult CompiledFindPattern(CompiledScanPattern pattern, int startingIndex = 0)
         {
             int numberOfInstructions = pattern.NumberOfInstructions;
             byte* dataBasePointer = _dataPtr;
@@ -115,7 +116,7 @@ namespace Reloaded.Memory.Sigscan
                     This ends up being considerably faster, which is important in a scenario where we are entirely CPU bound.
                 */
 
-                int x = 0;
+                int x = startingIndex;
                 while (x < lastIndex)
                 {
                     currentDataPointer = dataBasePointer + x;
