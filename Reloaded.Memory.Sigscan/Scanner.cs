@@ -227,11 +227,9 @@ namespace Reloaded.Memory.Sigscan
         {
             if (!_disposedValue)
             {
-                if (disposing)
-                {
-                    _gcHandle?.Free();
-                }
-
+                // Note: We consider a handle to managed memory as an
+                // unmanaged resource since it needs to be explicitly freed.
+                _gcHandle?.Free();
                 _disposedValue = true;
             }
         }
