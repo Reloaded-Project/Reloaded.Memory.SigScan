@@ -18,6 +18,8 @@ namespace Reloaded.Memory.Sigscan
     /// </summary>
     public unsafe class Scanner : IDisposable
     {
+        private static Process _currentProcess = Process.GetCurrentProcess();
+
         private bool _disposedValue;
         private GCHandle? _gcHandle;
         private byte*     _dataPtr;
@@ -38,16 +40,25 @@ namespace Reloaded.Memory.Sigscan
         /// Creates a signature scanner given a process and a module (EXE/DLL)
         /// from which the signatures are to be found.
         /// </summary>
-        /// <param name="process">The process from which</param>
-        /// <param name="module">An individual module of the given process, which</param>
+        /// <param name="process">The process from which to scan patterns in. (Not Null)</param>
+        /// <param name="module">An individual module of the given process, which denotes the start and end of memory region scanned.</param>
         public Scanner(Process process, ProcessModule module)
         {
-            var externalProcess = new ExternalMemory(process);
-            externalProcess.ReadRaw(module.BaseAddress, out var data, module.ModuleMemorySize);
+            // Optimization
+            if (process.Id == _currentProcess.Id)
+            {
+                _dataPtr    = (byte*) module.BaseAddress;
+                _dataLength = module.ModuleMemorySize;
+            }
+            else
+            {
+                var externalProcess = new ExternalMemory(process);
+                externalProcess.ReadRaw(module.BaseAddress, out var data, module.ModuleMemorySize);
 
-            _gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            _dataPtr = (byte*)_gcHandle.Value.AddrOfPinnedObject();
-            _dataLength = data.Length;
+                _gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                _dataPtr = (byte*)_gcHandle.Value.AddrOfPinnedObject();
+                _dataLength = data.Length;
+            }
         }
 
         /// <summary>
