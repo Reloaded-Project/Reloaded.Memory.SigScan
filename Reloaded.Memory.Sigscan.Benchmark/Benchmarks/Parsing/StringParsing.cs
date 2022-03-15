@@ -1,10 +1,11 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
 using Reloaded.Memory.Sigscan.Utility;
 
 namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Parsing
 {
-    [CoreJob]
+    [SimpleJob(RuntimeMoniker.CoreRt60)]
     [MemoryDiagnoser]
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]
     public class StringParsing

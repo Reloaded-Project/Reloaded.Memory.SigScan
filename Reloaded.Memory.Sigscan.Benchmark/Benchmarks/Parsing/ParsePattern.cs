@@ -1,10 +1,10 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Order;
+using BenchmarkDotNet.Jobs;
 using Reloaded.Memory.Sigscan.Structs;
 
 namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Parsing
 {
-    [CoreJob]
+    [SimpleJob(RuntimeMoniker.CoreRt60)]
     [MemoryDiagnoser]
     public class ParsePattern
     {

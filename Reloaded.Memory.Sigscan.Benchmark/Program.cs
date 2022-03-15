@@ -10,15 +10,11 @@ namespace Reloaded.Memory.Sigscan.Benchmark
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<ShortPatternEnd>();
-            BenchmarkRunner.Run<MediumPatternEnd>();
-            BenchmarkRunner.Run<MediumPatternWithMaskEnd>();
-            BenchmarkRunner.Run<MediumPatternAlignedEnd>();
-            BenchmarkRunner.Run<LongPatternEnd>();
-            BenchmarkRunner.Run<LongPatternWithMaskEnd>();
+            BenchmarkRunner.Run<LargeArrayBenchmarks>(LargeArrayBenchmarks.Config);
+            BenchmarkRunner.Run<WorstCaseScenario>(WorstCaseScenario.Config);
+
             BenchmarkRunner.Run<ParsePattern>();
             BenchmarkRunner.Run<StringParsing>();
-            BenchmarkRunner.Run<WorstCaseScenario>();
         }
     }
 }
