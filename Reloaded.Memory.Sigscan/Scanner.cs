@@ -5,6 +5,11 @@ using Reloaded.Memory.Sigscan.Instructions;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
 
+#if SIMD_INTRINSICS
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
+
 namespace Reloaded.Memory.Sigscan;
 
 /// <summary>
@@ -83,11 +88,99 @@ public unsafe class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPattern(string pattern)
+    public PatternScanResult CompiledFindPattern(string pattern) => CompiledFindPattern(new CompiledScanPattern(pattern));
+
+#if SIMD_INTRINSICS
+    /// <summary>
+    /// [AVX Variant]
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
+    /// This method generally works better when the expected offset is bigger than 4096.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The pattern to look for inside the given region.
+    ///     Example: "11 22 33 ?? 55".
+    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+    /// </param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult CompiledFindPatternAvx(string pattern) => CompiledFindPatternAvx(new CompiledScanPattern(pattern));
+
+    /// <summary>
+    /// [AVX Variant]
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// This method generally works better when the expected offset is bigger than 4096.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The compiled pattern to look for inside the given region.
+    /// </param>
+    /// <param name="startingIndex">The index to start searching at.</param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult CompiledFindPatternAvx(CompiledScanPattern pattern, int startingIndex = 0)
     {
-        var instructionSet = new CompiledScanPattern(pattern);
-        return CompiledFindPattern(instructionSet);
+        int numberOfInstructions = pattern.NumberOfInstructions;
+        byte* dataBasePointer = _dataPtr;
+        byte* currentDataPointer;
+        int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(Vector256<byte>)) + 1;
+
+        // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
+        fixed (GenericInstruction* instructions = pattern.Instructions)
+        {
+            var firstInstruction = instructions[0];
+
+            /*
+                For non-AVX optimisation details, see the other CompiledFindPattern.
+
+                AVX Strategy: 
+            
+                    Duplicate the instruction `32 / sizeof(nint)` times over.
+                    And perform multiple checks per cycle.
+            */
+
+
+            const int MaxShifts = 8;
+            
+            //var mask = Avx.LoadVector256(firstInstruction.Mask);
+
+            int x = startingIndex;
+            while (x < lastIndex)
+            {
+                currentDataPointer = dataBasePointer + x;
+                var compareValue = *(ulong*)currentDataPointer & firstInstruction.Mask;
+                if (compareValue != firstInstruction.LongValue)
+                    goto singleInstructionLoopExit;
+
+                if (numberOfInstructions <= 1)
+                    return new PatternScanResult(x);
+
+                /* When NumberOfInstructions > 1 */
+                currentDataPointer += sizeof(ulong);
+                int y = 1;
+                do
+                {
+                    compareValue = *(ulong*)currentDataPointer & instructions[y].Mask;
+                    if (compareValue != instructions[y].LongValue)
+                        goto singleInstructionLoopExit;
+
+                    currentDataPointer += sizeof(ulong);
+                    y++;
+                }
+                while (y < numberOfInstructions);
+
+                return new PatternScanResult(x);
+
+                singleInstructionLoopExit:;
+                x++;
+            }
+
+
+            // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
+            return SimpleFindPattern(pattern.Pattern, lastIndex);
+
+            // PS. This function is a prime example why the `goto` statement is frowned upon.
+            // I have to use it here for performance though.
+        }
     }
+#endif
 
     /// <summary>
     /// Attempts to find a given pattern inside the memory region this class was created with.
