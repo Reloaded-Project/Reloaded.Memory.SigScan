@@ -17,8 +17,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DefineConstants Condition="'$(TargetFramework)' == 'netstandard2.1'">$(DefineConstants);SPAN_API</DefineConstants>
 
-    <LangVersion>latest</LangVersion>
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>preview</LangVersion>
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Version>1.2.1</Version>
   </PropertyGroup>
 
