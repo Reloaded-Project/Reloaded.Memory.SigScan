@@ -103,7 +103,7 @@ public unsafe class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPatternAvx(string pattern) => CompiledFindPatternAvx(new CompiledScanPattern(pattern));
+    public PatternScanResult CompiledFindPatternAvx2(string pattern) => CompiledFindPatternAvx2(new CompiledScanPattern(pattern));
 
     /// <summary>
     /// [AVX Variant]
@@ -115,7 +115,7 @@ public unsafe class Scanner : IDisposable
     /// </param>
     /// <param name="startingIndex">The index to start searching at.</param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPatternAvx(CompiledScanPattern pattern, int startingIndex = 0)
+    public PatternScanResult CompiledFindPatternAvx2(CompiledScanPattern pattern, int startingIndex = 0)
     {
         int numberOfInstructions = pattern.NumberOfInstructions;
         byte* dataBasePointer = _dataPtr;
@@ -132,47 +132,85 @@ public unsafe class Scanner : IDisposable
 
                 AVX Strategy: 
             
-                    Duplicate the instruction `32 / sizeof(nint)` times over.
-                    And perform multiple checks per cycle.
+                    Search for 8 bytes at a time.
+                    Bitshift left if not found up until `RegisterBytes - sizeof(nint)`.
+                    If matches, investigate the rest.
             */
 
+            // Interpret pattern & mask based off of whether AVX or not.
+            int equalsMask = unchecked((int)(0b00000000_00000000_00000000_11111111));
+            Vector256<byte> patternAvx;
+            Vector256<byte> maskAvx;
+            int requiredShiftCount = sizeof(Vector256<byte>) - sizeof(long); // Calculated at JIT time.
 
-            const int MaxShifts = 8;
-            
-            //var mask = Avx.LoadVector256(firstInstruction.Mask);
+            // Note: Below check is taken out by the JIT if compiled in release; no perf impact.
+            var valueAsLong = (long)firstInstruction.LongValue;
+            var maskAsLong  = (long)firstInstruction.Mask;
+            if (sizeof(nint) == 4 && numberOfInstructions > 1)
+            {
+                valueAsLong |= ((long) instructions[1].LongValue) << 32;
+                maskAsLong  |= ((long) instructions[1].Mask) << 32;
+            }
+
+            patternAvx = Avx2.BroadcastScalarToVector256(&valueAsLong).AsByte();
+            maskAvx    = Avx2.BroadcastScalarToVector256(&maskAsLong).AsByte();
 
             int x = startingIndex;
             while (x < lastIndex)
             {
                 currentDataPointer = dataBasePointer + x;
-                var compareValue = *(ulong*)currentDataPointer & firstInstruction.Mask;
-                if (compareValue != firstInstruction.LongValue)
-                    goto singleInstructionLoopExit;
 
-                if (numberOfInstructions <= 1)
-                    return new PatternScanResult(x);
+                var dataAvx    = Avx2.LoadVector256(currentDataPointer);
+                int shiftCount = 0;
 
-                /* When NumberOfInstructions > 1 */
-                currentDataPointer += sizeof(ulong);
-                int y = 1;
-                do
+                for (; shiftCount < requiredShiftCount; shiftCount++)
                 {
-                    compareValue = *(ulong*)currentDataPointer & instructions[y].Mask;
-                    if (compareValue != instructions[y].LongValue)
-                        goto singleInstructionLoopExit;
+                    // Mask the data first.
+                    var maskedDataAvx = Avx2.And(dataAvx, maskAvx);
 
-                    currentDataPointer += sizeof(ulong);
-                    y++;
+                    // And compare against base value.
+                    var comparedValue = Avx2.CompareEqual(patternAvx, maskedDataAvx);
+                    if ((Avx2.MoveMask(comparedValue) & equalsMask) != equalsMask)
+                        goto noMatchFound;
+
+                    // First 8 bytes match using AVX. Compare remaining (if needed).
+                    // Fast exit if nothing else to compare.
+                    if ((sizeof(nint) == 8 && numberOfInstructions <= 1) || (sizeof(nint) == 4 && numberOfInstructions <= 2))
+                        return new PatternScanResult(x + shiftCount);
+                    
+                    /* When NumberOfInstructions > 1 */
+                    currentDataPointer += sizeof(ulong) + shiftCount; // Not an error; we're doing 8 byte comparisons in AVX.
+                    int y = sizeof(nint) == 8 ? 1 : 2;
+                    do
+                    {
+                        var compareValue = *(nuint*)currentDataPointer & instructions[y].Mask;
+                        if (compareValue != instructions[y].LongValue)
+                            goto noMatchFound;
+
+                        currentDataPointer += sizeof(nuint);
+                        y++;
+                    }
+                    while (y < numberOfInstructions);
+
+                    return new PatternScanResult(x + shiftCount);
+
+                    noMatchFound:;
+                    // Shift Left 1
+                    // Reference: https://stackoverflow.com/a/25264853/11106111
+                    // _mm256_alignr_epi8(_mm256_permute2x128_si256(A, A, _MM_SHUFFLE(2, 0, 0, 1)), A, N)
+                    // I'm not experienced with SIMD so this is mostly black magic to me.
+                    // Also weirdly, I needed shift right instead of shift left.
+
+                    // _MM_SHUFFLE(2, 0, 0, 1)
+                    const byte YXXZ = (2 << 6) | (0 << 4) | (0 << 2) | 1;
+                    dataAvx = Avx2.AlignRight(Avx2.Permute2x128(dataAvx, dataAvx, YXXZ), dataAvx, 1);
                 }
-                while (y < numberOfInstructions);
-
-                return new PatternScanResult(x);
-
-                singleInstructionLoopExit:;
-                x++;
+                
+                // Go to next vector read location.
+                x += sizeof(Vector256<byte>) - sizeof(long);
             }
 
-
+            // Done.
             // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
             return SimpleFindPattern(pattern.Pattern, lastIndex);
 
