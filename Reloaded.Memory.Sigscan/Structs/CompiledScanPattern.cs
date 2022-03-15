@@ -41,7 +41,7 @@ public ref struct CompiledScanPattern
     ///     Example: "11 22 33 ?? 55".
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F.
     /// </param>
-    public CompiledScanPattern(string stringPattern)
+    public unsafe CompiledScanPattern(string stringPattern)
     {
         Pattern = stringPattern;
         string[] entries = stringPattern.Split(' ');
@@ -49,7 +49,7 @@ public ref struct CompiledScanPattern
 
         // Ensure the array allocation size is sufficient such that dereferencing long at any index
         // could not possibly reference unallocated memory.
-        byte[] bytesToCompare = new byte[Math.Max(entries.Length, sizeof(long) * 2)];;
+        byte[] bytesToCompare = new byte[Math.Max(entries.Length, sizeof(nint) * 2)];;
         int arrayIndex = 0;
         foreach (var segment in entries)
         {
@@ -69,8 +69,8 @@ public ref struct CompiledScanPattern
         var spanEntries = new Span<string>(entries, 0, entries.Length);
         while (spanEntries.Length > 0)
         {
-            int nextSliceLength = Math.Min(sizeof(long), spanEntries.Length);
-            GenerateMaskAndValue(spanEntries.Slice(0, nextSliceLength), out ulong mask, out ulong value);
+            int nextSliceLength = Math.Min(sizeof(nint), spanEntries.Length);
+            GenerateMaskAndValue(spanEntries.Slice(0, nextSliceLength), out nuint mask, out nuint value);
             AddInstruction(new GenericInstruction(value, mask));
             spanEntries = spanEntries.Slice(nextSliceLength);
         }
@@ -86,7 +86,7 @@ public ref struct CompiledScanPattern
     /// <summary>
     /// Generates a mask given a pattern between size 0-8.
     /// </summary>
-    private void GenerateMaskAndValue(Span<string> entries, out ulong mask, out ulong value)
+    private unsafe void GenerateMaskAndValue(Span<string> entries, out nuint mask, out nuint value)
     {
         mask  = 0;
         value = 0;
@@ -108,7 +108,7 @@ public ref struct CompiledScanPattern
             Endian.Reverse(ref mask);
 
             // Trim excess zeroes.
-            int extraPadding = sizeof(long) - entries.Length;
+            int extraPadding = sizeof(nint) - entries.Length;
             for (int x = 0; x < extraPadding; x++)
             {
                 mask  = mask >> 8;
