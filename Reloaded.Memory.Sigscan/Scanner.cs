@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO.Pipes;
-using System.Numerics;
-using System.Reflection.Emit;
-using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Reloaded.Memory.Sigscan.Instructions;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
@@ -72,6 +66,7 @@ namespace Reloaded.Memory.Sigscan
             _dataLength = length;
         }
 
+        /// <inheritdoc />
         ~Scanner()
         {
             Dispose(false);
@@ -223,6 +218,7 @@ namespace Reloaded.Memory.Sigscan
             }
         }
 
+        /// <summary/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -235,6 +231,7 @@ namespace Reloaded.Memory.Sigscan
         }
 
         // This code added to correctly implement the disposable pattern.
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);

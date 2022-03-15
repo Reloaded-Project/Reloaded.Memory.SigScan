@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using Reloaded.Memory.Sigscan.Utility;
 
 namespace Reloaded.Memory.Sigscan.Structs
 {
     /// <summary>
-    /// [Internal & Test Use]
+    /// [Internal and Test Use]
     /// Represents the pattern to be searched by the scanner.
     /// </summary>
     public ref struct SimplePatternScanData

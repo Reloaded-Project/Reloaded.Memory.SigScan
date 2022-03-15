@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Security;
-using System.Text;
 using Reloaded.Memory.Sigscan.Instructions;
 
 namespace Reloaded.Memory.Sigscan.Structs
