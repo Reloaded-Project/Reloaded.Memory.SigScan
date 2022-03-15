@@ -196,7 +196,7 @@ public unsafe class Scanner : IDisposable
         int numberOfInstructions = pattern.NumberOfInstructions;
         byte* dataBasePointer = _dataPtr;
         byte* currentDataPointer;
-        int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(long)) + 1;
+        int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(nint)) + 1;
 
         // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
         fixed (GenericInstruction* instructions = pattern.Instructions)
@@ -219,7 +219,7 @@ public unsafe class Scanner : IDisposable
             while (x < lastIndex)
             {
                 currentDataPointer = dataBasePointer + x;
-                var compareValue = *(ulong*)currentDataPointer & firstInstruction.Mask;
+                var compareValue = *(nuint*)currentDataPointer & firstInstruction.Mask;
                 if (compareValue != firstInstruction.LongValue)
                     goto singleInstructionLoopExit;
 
@@ -227,15 +227,15 @@ public unsafe class Scanner : IDisposable
                     return new PatternScanResult(x);
 
                 /* When NumberOfInstructions > 1 */
-                currentDataPointer += sizeof(ulong);
+                currentDataPointer += sizeof(nuint);
                 int y = 1;
                 do
                 {
-                    compareValue = *(ulong*)currentDataPointer & instructions[y].Mask;
+                    compareValue = *(nuint*)currentDataPointer & instructions[y].Mask;
                     if (compareValue != instructions[y].LongValue)
                         goto singleInstructionLoopExit;
 
-                    currentDataPointer += sizeof(ulong);
+                    currentDataPointer += sizeof(nuint);
                     y++;
                 }
                 while (y < numberOfInstructions);
