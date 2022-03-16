@@ -19,6 +19,13 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
         }
 
         [Benchmark]
+        public int Sse()
+        {
+            var result = _scannerFromFile.CompiledFindPatternSse2("0A 0A 0A 0A 0A 0A 0A 0A 0B");
+            return result.Offset;
+        }
+
+        [Benchmark]
         public int Compiled()
         {
             var result = _scannerFromFile.CompiledFindPattern("0A 0A 0A 0A 0A 0A 0A 0A 0B");

@@ -12,6 +12,13 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
         }
 
         [Benchmark]
+        public int MediumPatternWithMaskEnd_Sse()
+        {
+            var result = _scannerFromFile.CompiledFindPatternSse2("A0 4E ?? ?? 0E ED");
+            return result.Offset;
+        }
+
+        [Benchmark]
         public int MediumPatternWithMaskEnd_Compiled()
         {
             var result = _scannerFromFile.CompiledFindPattern("A0 4E ?? ?? 0E ED");

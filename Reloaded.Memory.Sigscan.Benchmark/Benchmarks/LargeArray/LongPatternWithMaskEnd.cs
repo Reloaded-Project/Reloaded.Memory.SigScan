@@ -11,6 +11,13 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
             return result.Offset;
         }
 
+        [Benchmark]
+        public int LongPatternWithMaskEnd_Sse()
+        {
+            var result = _scannerFromFile.CompiledFindPatternSse2("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
+            return result.Offset;
+        }
+
         [Benchmark(Baseline = true)]
         public int LongPatternWithMaskEnd_Compiled()
         {

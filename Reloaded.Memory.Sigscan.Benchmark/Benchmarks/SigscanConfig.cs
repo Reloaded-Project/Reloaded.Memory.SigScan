@@ -21,7 +21,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks
                 .WithPlatform(Platform.X86)
                 .WithToolchain(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp50.WithCustomDotNetCliPath(@"C:\Program Files (x86)\dotnet\dotnet.exe")))
                 .WithId(".NET 5 (x86)"));
-
+            
             /*
             AddJob(Job.ShortRun
                 .WithPlatform(Platform.X64)

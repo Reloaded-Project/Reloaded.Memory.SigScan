@@ -47,9 +47,11 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("04 25 12 2B 86 E5 E3");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("04 25 12 2B 86 E5 E3");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("04 25 12 2B 86 E5 E3");
             var resultSimple = scanner.SimpleFindPattern("04 25 12 2B 86 E5 E3");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
             Assert.Equal(9, resultCompiled.Offset);
@@ -61,9 +63,11 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("04 25 ?? ?? 86 E5 E3");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("04 25 ?? ?? 86 E5 E3");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("04 25 ?? ?? 86 E5 E3");
             var resultSimple = scanner.SimpleFindPattern("04 25 ?? ?? 86 E5 E3");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
             Assert.Equal(9, resultCompiled.Offset);
@@ -75,9 +79,11 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
             var resultSimple = scanner.SimpleFindPattern("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultSimple.Found);
             Assert.Equal(9, resultSimple.Offset);
@@ -89,9 +95,11 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
             var resultSimple   = scanner.SimpleFindPattern("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
             Assert.Equal(9, resultCompiled.Offset);
@@ -103,9 +111,11 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("7A BB");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("7A BB");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("7A BB");
             var resultSimple   = scanner.SimpleFindPattern("7A BB");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
             Assert.Equal(254, resultCompiled.Offset);
@@ -117,9 +127,11 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("D3 B2 7A");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("D3 B2 7A");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("D3 B2 7A");
             var resultSimple = scanner.SimpleFindPattern("D3 B2 7A");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
             Assert.Equal(resultCompiled, resultSimple);
             Assert.True(resultCompiled.Found);
             Assert.Equal(0, resultCompiled.Offset);
@@ -131,9 +143,12 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("BB");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("BB");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("BB");
             var resultSimple = scanner.SimpleFindPattern("BB");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiled);
             Assert.True(resultCompiled.Found);
             Assert.Equal(255, resultCompiled.Offset);
         }
@@ -144,9 +159,11 @@ namespace Reloaded.Memory.SigScan.Tests
             var scanner = new Scanner(_data);
             var resultCompiled = scanner.CompiledFindPattern("7A BB CC DD EE FF");
             var resultCompiledAvx = scanner.CompiledFindPatternAvx2("7A BB CC DD EE FF");
+            var resultCompiledSse = scanner.CompiledFindPatternSse2("7A BB CC DD EE FF");
             var resultSimple   = scanner.SimpleFindPattern("7A BB CC DD EE FF");
 
-            Assert.Equal(resultCompiledAvx, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiledAvx);
+            Assert.Equal(resultCompiledSse, resultSimple);
             Assert.Equal(resultCompiled, resultSimple);
             Assert.False(resultCompiled.Found);
             Assert.Equal(-1, resultCompiled.Offset);
