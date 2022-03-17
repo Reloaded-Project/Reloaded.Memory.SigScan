@@ -36,7 +36,7 @@
 
 # Introduction
 
-`Reloaded.Memory.SigScan`, is a pattern matching library for scanning byte signatures. It is biased towards ease of use and most importantly speed, achieving a staggering 2000MB/s on a single processor thread.
+`Reloaded.Memory.SigScan`, is a pattern matching library for scanning byte signatures. It is biased towards ease of use and most importantly speed, achieving a staggering 2GB/s on a single processor thread in non-vectorised searches and over 10GB/s on vectorised searches.
 
 # Functionality
 
@@ -46,9 +46,10 @@
 
 Speed is the primary reason this repository exists.
 
-The current implementation, at the time of writing can reach upwards of 2000MB/s on a single thread of a modern processor.
+The current non-vectorized implementation, at the time of writing can reach upwards of 2000MB/s on a single thread of a modern processor.  
+The current vectorized implementation breaks the 10000MB/s barrier.  
 
-Signature scanning is most often used in malware analysis (AV Software) and game hacking,  however both of those are by far the domain of native C/C++ code. There exists very little on the managed .NET front, this library was written as I was not able to find a .NET signature scanning library that focuses on performance.
+Signature scanning is most often used in malware analysis (AV Software) and game hacking, however both of those are by far the domain of native C/C++ code. There exists very little on the managed .NET front, this library was written as I was not able to find a .NET signature scanning library that focuses on performance.
 
 #### Simple to Use
 
@@ -87,11 +88,10 @@ The provided "Speed" column is an effective measure of pattern matching speed in
 
 ### Configuration
 ```
-BenchmarkDotNet=v0.11.5, OS=Windows 10.0.18362
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19044.1586 (21H2)
 Intel Core i7-4790K CPU 4.00GHz (Haswell), 1 CPU, 8 logical and 4 physical cores
-.NET Core SDK=3.0.100-preview7-012821
-  [Host] : .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
-  Core   : .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+.NET SDK=6.0.200
+  [Host] : .NET 5.0.15 (5.0.1522.11506), X64 RyuJIT
 ```
 
 ### Small Signatures (1-8 bytes)
@@ -170,3 +170,7 @@ For other benchmarks, please see the `Reloaded.Memory.Sigscan.Benchmark` project
 To run the benchmarks yourself, simply run `Reloaded.Memory.Sigscan.Benchmark` after compiling in `Release` mode.
 
 `Reloaded.Memory.Sigscan.Benchmark` is powered by [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet).
+
+### Acknowledgements
+
+Vectorised implementations of Reloaded.Memory.Sigscan are based off of a modified version of LazySIMD by [uberhalit](https://github.com/uberhalit).
