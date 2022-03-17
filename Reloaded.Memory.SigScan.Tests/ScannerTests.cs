@@ -45,10 +45,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void FindBasicPattern()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("04 25 12 2B 86 E5 E3");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("04 25 12 2B 86 E5 E3");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("04 25 12 2B 86 E5 E3");
-            var resultSimple = scanner.SimpleFindPattern("04 25 12 2B 86 E5 E3");
+            var resultCompiled = scanner.FindPattern_Compiled("04 25 12 2B 86 E5 E3");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("04 25 12 2B 86 E5 E3");
+            var resultCompiledSse = scanner.FindPattern_Sse2("04 25 12 2B 86 E5 E3");
+            var resultSimple = scanner.FindPattern_Simple("04 25 12 2B 86 E5 E3");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
@@ -61,10 +61,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void FindPatternWithMask()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("04 25 ?? ?? 86 E5 E3");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("04 25 ?? ?? 86 E5 E3");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("04 25 ?? ?? 86 E5 E3");
-            var resultSimple = scanner.SimpleFindPattern("04 25 ?? ?? 86 E5 E3");
+            var resultCompiled = scanner.FindPattern_Compiled("04 25 ?? ?? 86 E5 E3");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("04 25 ?? ?? 86 E5 E3");
+            var resultCompiledSse = scanner.FindPattern_Sse2("04 25 ?? ?? 86 E5 E3");
+            var resultSimple = scanner.FindPattern_Simple("04 25 ?? ?? 86 E5 E3");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
@@ -77,10 +77,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void FindPatternWithLongAndMask()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
-            var resultSimple = scanner.SimpleFindPattern("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
+            var resultCompiled = scanner.FindPattern_Compiled("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
+            var resultCompiledSse = scanner.FindPattern_Sse2("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
+            var resultSimple = scanner.FindPattern_Simple("04 25 12 2B 86 E5 E3 21 AF A3 ?? ?? 71 D1");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
@@ -93,10 +93,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void FindPatternStartingWithSkip()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
-            var resultSimple   = scanner.SimpleFindPattern("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
+            var resultCompiled = scanner.FindPattern_Compiled("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
+            var resultCompiledSse = scanner.FindPattern_Sse2("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
+            var resultSimple   = scanner.FindPattern_Simple("?? 25 ?? ?? 86 E5 E3 ?? AF A3 ??");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
@@ -109,10 +109,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void FindPatternAtEndOfData()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("7A BB");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("7A BB");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("7A BB");
-            var resultSimple   = scanner.SimpleFindPattern("7A BB");
+            var resultCompiled = scanner.FindPattern_Compiled("7A BB");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("7A BB");
+            var resultCompiledSse = scanner.FindPattern_Sse2("7A BB");
+            var resultSimple   = scanner.FindPattern_Simple("7A BB");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
@@ -125,10 +125,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void FindFirstByte()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("D3 B2 7A");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("D3 B2 7A");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("D3 B2 7A");
-            var resultSimple = scanner.SimpleFindPattern("D3 B2 7A");
+            var resultCompiled = scanner.FindPattern_Compiled("D3 B2 7A");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("D3 B2 7A");
+            var resultCompiledSse = scanner.FindPattern_Sse2("D3 B2 7A");
+            var resultSimple = scanner.FindPattern_Simple("D3 B2 7A");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
@@ -141,10 +141,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void FindLastByte()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("BB");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("BB");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("BB");
-            var resultSimple = scanner.SimpleFindPattern("BB");
+            var resultCompiled = scanner.FindPattern_Compiled("BB");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("BB");
+            var resultCompiledSse = scanner.FindPattern_Sse2("BB");
+            var resultSimple = scanner.FindPattern_Simple("BB");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
@@ -157,10 +157,10 @@ namespace Reloaded.Memory.SigScan.Tests
         public void PatternNotFound()
         {
             var scanner = new Scanner(_data);
-            var resultCompiled = scanner.CompiledFindPattern("7A BB CC DD EE FF");
-            var resultCompiledAvx = scanner.CompiledFindPatternAvx2("7A BB CC DD EE FF");
-            var resultCompiledSse = scanner.CompiledFindPatternSse2("7A BB CC DD EE FF");
-            var resultSimple   = scanner.SimpleFindPattern("7A BB CC DD EE FF");
+            var resultCompiled = scanner.FindPattern_Compiled("7A BB CC DD EE FF");
+            var resultCompiledAvx = scanner.FindPattern_Avx2("7A BB CC DD EE FF");
+            var resultCompiledSse = scanner.FindPattern_Sse2("7A BB CC DD EE FF");
+            var resultSimple   = scanner.FindPattern_Simple("7A BB CC DD EE FF");
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);

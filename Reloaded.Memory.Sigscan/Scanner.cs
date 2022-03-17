@@ -77,24 +77,29 @@ public unsafe partial class Scanner : IDisposable
         Dispose(false);
     }
 
-    /// <summary>
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
-    /// This method generally works better when the expected offset is bigger than 4096.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The pattern to look for inside the given region.
-    ///     Example: "11 22 33 ?? 55".
-    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
-    /// </param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPattern(string pattern) => CompiledFindPattern(new CompiledScanPattern(pattern));
+    // This code added to correctly implement the disposable pattern.
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            // Note: We consider a handle to managed memory as an
+            // unmanaged resource since it needs to be explicitly freed.
+            _gcHandle?.Free();
+            _disposedValue = true;
+        }
+    }
 
     /// <summary>
-    /// [AVX Variant]
     /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
-    /// This method generally works better when the expected offset is bigger than 4096.
+    /// The method used depends on the available hardware; will use vectorized instructions if available.
     /// </summary>
     /// <param name="pattern">
     ///     The pattern to look for inside the given region.
@@ -102,7 +107,7 @@ public unsafe partial class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPatternAuto(string pattern)
+    public PatternScanResult FindPattern(string pattern)
     {
 #if SIMD_INTRINSICS
         if (Avx2.IsSupported)
@@ -112,16 +117,13 @@ public unsafe partial class Scanner : IDisposable
             return FindPatternSse2(_dataPtr, _dataLength, pattern);
 #endif
 
-        return CompiledFindPattern(pattern);
+        return FindPattern_Compiled(pattern);
     }
 
 #if SIMD_INTRINSICS
-
     /// <summary>
-    /// [AVX Variant]
     /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
-    /// This method generally works better when the expected offset is bigger than 4096.
+    /// This method is based on a modified version of 'LazySIMD' - by uberhalit.
     /// </summary>
     /// <param name="pattern">
     ///     The pattern to look for inside the given region.
@@ -129,13 +131,12 @@ public unsafe partial class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPatternAvx2(string pattern) => FindPatternAvx2(_dataPtr, _dataLength, pattern);
+    public PatternScanResult FindPattern_Avx2(string pattern) => FindPatternAvx2(_dataPtr, _dataLength, pattern);
 
     /// <summary>
     /// [SSE2 Variant]
     /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
-    /// This method generally works better when the expected offset is bigger than 4096.
+    /// This method is based on a modified version of 'LazySIMD' - by uberhalit.
     /// </summary>
     /// <param name="pattern">
     ///     The pattern to look for inside the given region.
@@ -143,9 +144,21 @@ public unsafe partial class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPatternSse2(string pattern) => FindPatternSse2(_dataPtr, _dataLength, pattern);
-
+    public PatternScanResult FindPattern_Sse2(string pattern) => FindPatternSse2(_dataPtr, _dataLength, pattern);
 #endif
+
+    /// <summary>
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// This method generates a list of instructions, which specify a set of bytes and mask to check against.
+    /// It is fairly performant on 64-bit systems but not much faster than the simple implementation on 32-bit systems.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The pattern to look for inside the given region.
+    ///     Example: "11 22 33 ?? 55".
+    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+    /// </param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult FindPattern_Compiled(string pattern) => FindPattern_Compiled(new CompiledScanPattern(pattern));
 
     /// <summary>
     /// Attempts to find a given pattern inside the memory region this class was created with.
@@ -156,7 +169,7 @@ public unsafe partial class Scanner : IDisposable
     /// </param>
     /// <param name="startingIndex">The index to start searching at.</param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPattern(CompiledScanPattern pattern, int startingIndex = 0)
+    public PatternScanResult FindPattern_Compiled(CompiledScanPattern pattern, int startingIndex = 0)
     {
         int numberOfInstructions = pattern.NumberOfInstructions;
         byte* dataBasePointer = _dataPtr;
@@ -213,7 +226,7 @@ public unsafe partial class Scanner : IDisposable
                 
 
             // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-            return SimpleFindPattern(pattern.Pattern, lastIndex);
+            return FindPattern_Simple(pattern.Pattern, lastIndex);
 
             // PS. This function is a prime example why the `goto` statement is frowned upon.
             // I have to use it here for performance though.
@@ -232,7 +245,7 @@ public unsafe partial class Scanner : IDisposable
     /// </param>
     /// <param name="startingIndex">The index to start searching at.</param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult SimpleFindPattern(string pattern, int startingIndex = 0)
+    public PatternScanResult FindPattern_Simple(string pattern, int startingIndex = 0)
     {
         var target      = new SimplePatternScanData(pattern);
         var patternData = target.Bytes;
@@ -274,25 +287,5 @@ public unsafe partial class Scanner : IDisposable
 
             return new PatternScanResult(-1);
         }
-    }
-
-    /// <summary/>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposedValue)
-        {
-            // Note: We consider a handle to managed memory as an
-            // unmanaged resource since it needs to be explicitly freed.
-            _gcHandle?.Free();
-            _disposedValue = true;
-        }
-    }
-
-    // This code added to correctly implement the disposable pattern.
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
     }
 }

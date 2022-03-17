@@ -7,28 +7,28 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
         [Benchmark]
         public int LongPatternWithMaskEnd_Avx()
         {
-            var result = _scannerFromFile.CompiledFindPatternAvx2("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
+            var result = _scannerFromFile.FindPattern_Avx2("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
             return result.Offset;
         }
 
         [Benchmark]
         public int LongPatternWithMaskEnd_Sse()
         {
-            var result = _scannerFromFile.CompiledFindPatternSse2("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
+            var result = _scannerFromFile.FindPattern_Sse2("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
             return result.Offset;
         }
 
         [Benchmark(Baseline = true)]
         public int LongPatternWithMaskEnd_Compiled()
         {
-            var result = _scannerFromFile.CompiledFindPattern("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
+            var result = _scannerFromFile.FindPattern_Compiled("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
             return result.Offset;
         }
 
         [Benchmark]
         public int LongPatternWithMaskEnd_Simple()
         {
-            var result = _scannerFromFile.SimpleFindPattern("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
+            var result = _scannerFromFile.FindPattern_Simple("9F 43 ?? ?? 43 4F 99 ?? ?? 48");
             return result.Offset;
         }
     }

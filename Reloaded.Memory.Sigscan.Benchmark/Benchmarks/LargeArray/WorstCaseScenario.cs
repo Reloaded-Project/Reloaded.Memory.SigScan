@@ -14,28 +14,28 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
         [Benchmark]
         public int Avx()
         {
-            var result = _scannerFromFile.CompiledFindPatternAvx2("0A 0A 0A 0A 0A 0A 0A 0A 0B");
+            var result = _scannerFromFile.FindPattern_Avx2("0A 0A 0A 0A 0A 0A 0A 0A 0B");
             return result.Offset;
         }
 
         [Benchmark]
         public int Sse()
         {
-            var result = _scannerFromFile.CompiledFindPatternSse2("0A 0A 0A 0A 0A 0A 0A 0A 0B");
+            var result = _scannerFromFile.FindPattern_Sse2("0A 0A 0A 0A 0A 0A 0A 0A 0B");
             return result.Offset;
         }
 
         [Benchmark]
         public int Compiled()
         {
-            var result = _scannerFromFile.CompiledFindPattern("0A 0A 0A 0A 0A 0A 0A 0A 0B");
+            var result = _scannerFromFile.FindPattern_Compiled("0A 0A 0A 0A 0A 0A 0A 0A 0B");
             return result.Offset;
         }
 
         [Benchmark]
         public int Simple()
         {
-            var result = _scannerFromFile.SimpleFindPattern("0A 0A 0A 0A 0A 0A 0A 0A 0B");
+            var result = _scannerFromFile.FindPattern_Simple("0A 0A 0A 0A 0A 0A 0A 0A 0B");
             return result.Offset;
         }
     }

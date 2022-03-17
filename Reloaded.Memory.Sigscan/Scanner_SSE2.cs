@@ -49,7 +49,7 @@ public unsafe partial class Scanner
     {
         var patternData = new SimdPatternScanData(pattern);
         if (patternData.Bytes.Length == 1) // For single byte search, fall back.
-            return SimpleFindPattern(pattern);
+            return FindPattern_Simple(pattern);
 
         var matchTable       = BuildMatchIndexes(patternData);
         var patternVectors   = PadPatternToVector128Sse(patternData);
@@ -123,7 +123,7 @@ public unsafe partial class Scanner
         }
 
         // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-        return SimpleFindPattern(pattern, position);
+        return FindPattern_Simple(pattern, position);
     }
 
     /// <summary>
