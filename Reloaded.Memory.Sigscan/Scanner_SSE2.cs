@@ -26,6 +26,8 @@ namespace Reloaded.Memory.Sigscan;
 /// Uses SIMD instructions on SSE2-supporting processors, the longer the pattern the more efficient this should get.
 /// Requires RyuJIT compiler for hardware acceleration which **should** be enabled by default on newer VS versions.
 /// Ideally a pattern would be a multiple of (xmm0 register size) / 8 so all available space gets used in calculations.
+///
+/// Licensed under the MIT License: https://github.com/uberhalit/PatternScanBench/blob/master/LICENSE
 /// </summary>
 public unsafe partial class Scanner
 {
