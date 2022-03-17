@@ -18,7 +18,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks
         {
             Add(DefaultConfig.Instance);
 
-            AddJob(Job.ShortRun
+            AddJob(Job.Default
                 .WithToolchain(InProcessEmitToolchain.Instance)
                 .WithId(".NET (Current Process)"));
 
