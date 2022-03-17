@@ -5,12 +5,17 @@ using Reloaded.Memory.Sigscan.Instructions;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
 
+#if SIMD_INTRINSICS
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
+
 namespace Reloaded.Memory.Sigscan;
 
 /// <summary>
 /// Provides an implementation of a simple signature scanner sitting ontop of Reloaded.Memory.
 /// </summary>
-public unsafe class Scanner : IDisposable
+public unsafe partial class Scanner : IDisposable
 {
     private static Process _currentProcess = Process.GetCurrentProcess();
 
@@ -83,11 +88,64 @@ public unsafe class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPattern(string pattern)
+    public PatternScanResult CompiledFindPattern(string pattern) => CompiledFindPattern(new CompiledScanPattern(pattern));
+
+    /// <summary>
+    /// [AVX Variant]
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
+    /// This method generally works better when the expected offset is bigger than 4096.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The pattern to look for inside the given region.
+    ///     Example: "11 22 33 ?? 55".
+    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+    /// </param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult CompiledFindPatternAuto(string pattern)
     {
-        var instructionSet = new CompiledScanPattern(pattern);
-        return CompiledFindPattern(instructionSet);
+#if SIMD_INTRINSICS
+        if (Avx2.IsSupported)
+            return FindPatternAvx2(_dataPtr, _dataLength, pattern);
+
+        if (Sse2.IsSupported)
+            return FindPatternSse2(_dataPtr, _dataLength, pattern);
+#endif
+
+        return CompiledFindPattern(pattern);
     }
+
+#if SIMD_INTRINSICS
+
+    /// <summary>
+    /// [AVX Variant]
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
+    /// This method generally works better when the expected offset is bigger than 4096.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The pattern to look for inside the given region.
+    ///     Example: "11 22 33 ?? 55".
+    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+    /// </param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult CompiledFindPatternAvx2(string pattern) => FindPatternAvx2(_dataPtr, _dataLength, pattern);
+
+    /// <summary>
+    /// [SSE2 Variant]
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
+    /// This method generally works better when the expected offset is bigger than 4096.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The pattern to look for inside the given region.
+    ///     Example: "11 22 33 ?? 55".
+    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+    /// </param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult CompiledFindPatternSse2(string pattern) => FindPatternSse2(_dataPtr, _dataLength, pattern);
+
+#endif
 
     /// <summary>
     /// Attempts to find a given pattern inside the memory region this class was created with.
@@ -103,7 +161,7 @@ public unsafe class Scanner : IDisposable
         int numberOfInstructions = pattern.NumberOfInstructions;
         byte* dataBasePointer = _dataPtr;
         byte* currentDataPointer;
-        int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(nint)) + 1;
+        int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(nint));
 
         // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
         fixed (GenericInstruction* instructions = pattern.Instructions)

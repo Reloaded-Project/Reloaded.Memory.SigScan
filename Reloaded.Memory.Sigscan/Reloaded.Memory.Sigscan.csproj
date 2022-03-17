@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
     <Authors>Sewer56</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -15,7 +15,8 @@
     <PackageIconUrl>https://avatars1.githubusercontent.com/u/45473408</PackageIconUrl>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DefineConstants Condition="'$(TargetFramework)' == 'netstandard2.1'">$(DefineConstants);SPAN_API</DefineConstants>
+    <DefineConstants Condition="'$(TargetFramework)' != 'netstandard2.0'">$(DefineConstants);SPAN_API</DefineConstants>
+    <DefineConstants Condition="('$(TargetFramework)' == 'netcoreapp3.1') Or ('$(TargetFramework)' == 'net5.0')">$(DefineConstants);SIMD_INTRINSICS</DefineConstants>
 
     <LangVersion>preview</LangVersion>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
