@@ -57,13 +57,13 @@ Signature scanning is most often used in malware analysis (AV Software) and game
 ```csharp
 var thisProcess = Process.GetCurrentProcess();
 var scanner     = new Scanner(thisProcess, thisProcess.MainModule);
-int offset      = scanner.CompiledFindPattern("04 25 12 ?? ?? E5 E3");
+int offset      = scanner.FindPattern("04 25 12 ?? ?? E5 E3");
 ```
 
 **Search an offset in a byte array:**
 ```csharp
 var scanner     = new Scanner(data);
-int offset      = scanner.CompiledFindPattern("02 11 25 AB");
+int offset      = scanner.FindPattern("02 11 25 AB");
 ```
 
 Patterns are specified as hex values, without prefix and delimited by spaces.
