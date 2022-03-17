@@ -13,8 +13,8 @@
 		<img src="https://img.shields.io/nuget/v/Reloaded.Memory.SigScan.svg" alt="NuGet" />
 	</a>
 	<!-- Build Status -->
-	<a href="https://ci.appveyor.com/project/sewer56lol/reloaded-memory-sigscan">
-		<img src="https://ci.appveyor.com/api/projects/status/7ayrf21ggo6ji2e0?svg=true" alt="Build Status" />
+	<a href="https://github.com/Reloaded-Project/Reloaded.Memory.SigScan/actions/workflows/build-and-publish.yml">
+		<img src="https://img.shields.io/github/workflow/status/Reloaded-Project/Reloaded.Memory.SigScan/Build%20and%20Publish" alt="Build Status" />
 	</a>
 </div>
 
