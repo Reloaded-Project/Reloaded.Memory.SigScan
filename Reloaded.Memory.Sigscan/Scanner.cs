@@ -90,6 +90,31 @@ public unsafe partial class Scanner : IDisposable
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
     public PatternScanResult CompiledFindPattern(string pattern) => CompiledFindPattern(new CompiledScanPattern(pattern));
 
+    /// <summary>
+    /// [AVX Variant]
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// This method generates a list of instructions, which more efficiently determine at any array index if pattern is found.
+    /// This method generally works better when the expected offset is bigger than 4096.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The pattern to look for inside the given region.
+    ///     Example: "11 22 33 ?? 55".
+    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+    /// </param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult CompiledFindPatternAuto(string pattern)
+    {
+#if SIMD_INTRINSICS
+        if (Avx2.IsSupported)
+            return FindPatternAvx2(_dataPtr, _dataLength, pattern);
+
+        if (Sse2.IsSupported)
+            return FindPatternSse2(_dataPtr, _dataLength, pattern);
+#endif
+
+        return CompiledFindPattern(pattern);
+    }
+
 #if SIMD_INTRINSICS
 
     /// <summary>
@@ -118,7 +143,7 @@ public unsafe partial class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult CompiledFindPatternSse2(string pattern) => FindPatternSse(_dataPtr, _dataLength, pattern);
+    public PatternScanResult CompiledFindPatternSse2(string pattern) => FindPatternSse2(_dataPtr, _dataLength, pattern);
 
 #endif
 

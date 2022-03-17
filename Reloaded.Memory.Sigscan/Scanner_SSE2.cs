@@ -45,7 +45,7 @@ public unsafe partial class Scanner
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>-1 if pattern is not found.</returns>
-    internal PatternScanResult FindPatternSse(byte* data, int dataLength, string pattern)
+    internal PatternScanResult FindPatternSse2(byte* data, int dataLength, string pattern)
     {
         var patternData = new SimdPatternScanData(pattern);
         if (patternData.Bytes.Length == 1) // For single byte search, fall back.
