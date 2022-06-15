@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Reloaded.Memory.Sigscan.Instructions;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
 
@@ -115,7 +114,7 @@ public unsafe partial class Scanner : IDisposable
             return FindPatternSse2(_dataPtr, _dataLength, pattern);
 #endif
 
-        return FindPattern_Compiled(pattern);
+        return FindPatternCompiled(_dataPtr, _dataLength, pattern);
     }
 
 #if SIMD_INTRINSICS
@@ -156,81 +155,8 @@ public unsafe partial class Scanner : IDisposable
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult FindPattern_Compiled(string pattern) => FindPattern_Compiled(new CompiledScanPattern(pattern));
-
-    /// <summary>
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generally works better when the expected offset is bigger than 4096.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The compiled pattern to look for inside the given region.
-    /// </param>
-    /// <param name="startingIndex">The index to start searching at.</param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult FindPattern_Compiled(CompiledScanPattern pattern, int startingIndex = 0)
-    {
-        int numberOfInstructions = pattern.NumberOfInstructions;
-        byte* dataBasePointer = _dataPtr;
-        byte* currentDataPointer;
-        int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(nint));
-
-        // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
-        fixed (GenericInstruction* instructions = pattern.Instructions)
-        {
-            var firstInstruction = instructions[0];
-
-            /*
-                There is an optimization going on in here apart from manual inlining which is why
-                this function is a tiny mess of more goto statements than it seems necessary.
-
-                Basically, it is considerably faster to reference a variable on the stack, than it is on the heap.
-            
-                This is because the compiler can address the stack bound variable relative to the current stack pointer,
-                as opposing to having to dereference a pointer and then take an offset from the result address.
-                
-                This ends up being considerably faster, which is important in a scenario where we are entirely CPU bound.
-            */
-
-            int x = startingIndex;
-            while (x < lastIndex)
-            {
-                currentDataPointer = dataBasePointer + x;
-                var compareValue = *(nuint*)currentDataPointer & firstInstruction.Mask;
-                if (compareValue != firstInstruction.LongValue)
-                    goto singleInstructionLoopExit;
-
-                if (numberOfInstructions <= 1)
-                    return new PatternScanResult(x);
-
-                /* When NumberOfInstructions > 1 */
-                currentDataPointer += sizeof(nuint);
-                int y = 1;
-                do
-                {
-                    compareValue = *(nuint*)currentDataPointer & instructions[y].Mask;
-                    if (compareValue != instructions[y].LongValue)
-                        goto singleInstructionLoopExit;
-
-                    currentDataPointer += sizeof(nuint);
-                    y++;
-                }
-                while (y < numberOfInstructions);
-
-                return new PatternScanResult(x);
-
-                singleInstructionLoopExit:;
-                x++;
-            }
-                
-
-            // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-            return FindPattern_Simple(pattern.Pattern, lastIndex);
-
-            // PS. This function is a prime example why the `goto` statement is frowned upon.
-            // I have to use it here for performance though.
-        }
-    }
-
+    public PatternScanResult FindPattern_Compiled(string pattern) => FindPatternCompiled(_dataPtr, _dataLength, pattern);
+    
     /// <summary>
     /// Attempts to find a given pattern inside the memory region this class was created with.
     /// This method uses the simple search, which simply iterates over all bytes, reading max 1 byte at once.
@@ -241,49 +167,6 @@ public unsafe partial class Scanner : IDisposable
     ///     Example: "11 22 33 ?? 55".
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
-    /// <param name="startingIndex">The index to start searching at.</param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult FindPattern_Simple(string pattern, int startingIndex = 0)
-    {
-        var target      = new SimplePatternScanData(pattern);
-        var patternData = target.Bytes;
-        var patternMask = target.Mask;
-
-        int lastIndex   = (_dataLength - patternMask.Length) + 1;
-
-        fixed (byte* patternDataPtr = patternData)
-        {
-            for (int x = startingIndex; x < lastIndex; x++)
-            {
-                int patternDataOffset = 0;
-                int currentIndex = x;
-
-                int y = 0;
-                do
-                {
-                    // Some performance is saved by making the mask a non-string, since a string comparison is a bit more involved with e.g. null checks.
-                    if (patternMask[y] == 0x0)
-                    {
-                        currentIndex += 1;
-                        y++;
-                        continue;
-                    }
-
-                    // Performance: No need to check if Mask is `x`. The only supported wildcard is '?'.
-                    if (_dataPtr[currentIndex] != patternDataPtr[patternDataOffset])
-                        goto loopexit;
-
-                    currentIndex += 1;
-                    patternDataOffset += 1;
-                    y++;
-                }
-                while (y < patternMask.Length);
-
-                return new PatternScanResult(x);
-                loopexit:;
-            }
-
-            return new PatternScanResult(-1);
-        }
-    }
+    public PatternScanResult FindPattern_Simple(string pattern) => FindPatternSimple(_dataPtr, _dataLength, pattern);
 }

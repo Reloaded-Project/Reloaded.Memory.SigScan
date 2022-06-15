@@ -10,12 +10,7 @@ Reloaded.Memory.Sigscan.Instructions.GenericInstruction.Mask -> nuint
 Reloaded.Memory.Sigscan.Scanner
 Reloaded.Memory.Sigscan.Scanner.Dispose() -> void
 Reloaded.Memory.Sigscan.Scanner.FindPattern(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Scanner.FindPattern_Avx2(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Scanner.FindPattern_Compiled(Reloaded.Memory.Sigscan.Structs.CompiledScanPattern pattern, int startingIndex = 0) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
 Reloaded.Memory.Sigscan.Scanner.FindPattern_Compiled(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Scanner.FindPattern_Simple(string pattern, int startingIndex = 0) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Scanner.FindPattern_Sse2(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Scanner.Scanner(byte* data, int length) -> void
 Reloaded.Memory.Sigscan.Scanner.Scanner(byte[] data) -> void
 Reloaded.Memory.Sigscan.Scanner.Scanner(System.Diagnostics.Process process, System.Diagnostics.ProcessModule module) -> void
 Reloaded.Memory.Sigscan.Scanner.~Scanner() -> void
@@ -46,3 +41,4 @@ Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.SpanSplitEnumerat
 Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.SpanSplitEnumerator(System.ReadOnlySpan<TSpanType> item, TSpanType splitItem) -> void
 Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.SplitItem.get -> TSpanType
 virtual Reloaded.Memory.Sigscan.Scanner.Dispose(bool disposing) -> void
+Reloaded.Memory.Sigscan.Scanner.Scanner(byte* data, int length) -> void

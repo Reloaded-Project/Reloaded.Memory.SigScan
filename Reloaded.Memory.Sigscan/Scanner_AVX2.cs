@@ -42,11 +42,16 @@ public unsafe partial class Scanner
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>-1 if pattern is not found.</returns>
-    internal PatternScanResult FindPatternAvx2(byte* data, int dataLength, string pattern)
+#if NET5_0_OR_GREATER
+    [SkipLocalsInit]
+#endif
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static PatternScanResult FindPatternAvx2(byte* data, int dataLength, string pattern)
     {
+        var dataPtr = data;
         var patternData = new SimdPatternScanData(pattern);
         if (patternData.Bytes.Length == 1) // For single byte search, fall back.
-            return FindPattern_Simple(pattern);
+            return FindPatternSimple(data, dataLength, pattern);
 
         var matchTable       = BuildMatchIndexes(patternData);
         var patternVectors   = PadPatternToVector256Avx(patternData);
@@ -63,17 +68,17 @@ public unsafe partial class Scanner
         int simdJump = AvxRegisterLength - 1;
         int searchLength = dataLength - Math.Max(patternData.Bytes.Length, AvxRegisterLength);
         int position = 0;
-        for (; position < searchLength; position++, data += 1)
+        for (; position < searchLength; position++, dataPtr += 1)
         {
             // Problem: If pattern starts with unknown, will never match.
-            var rhs = Avx.LoadVector256(data);
+            var rhs = Avx.LoadVector256(dataPtr);
             var equal = Avx2.CompareEqual(pFirstVec, rhs);
             int findFirstByte = Avx2.MoveMask(equal);
             
             if (findFirstByte == 0)
             {
                 position += simdJump;
-                data += simdJump;
+                dataPtr += simdJump;
                 continue;
             }
 
@@ -81,14 +86,14 @@ public unsafe partial class Scanner
             int offset = BitOperations.TrailingZeroCount((uint)findFirstByte);
             offset -= leadingIgnoreCount;
             position += offset;
-            data += offset;
+            dataPtr += offset;
 
             // Match with remaining vectors.
             int iMatchTableIndex = 0;
             bool found = true;
             for (int i = 0; i < vectorLength; i++)
             {
-                var nextByte = data + (1 + (i * AvxRegisterLength));
+                var nextByte = dataPtr + (1 + (i * AvxRegisterLength));
                 var rhsNo2   = Avx.LoadVector256(nextByte);
                 var curPatternVector = Unsafe.Add(ref pVec, i);
 
@@ -120,13 +125,17 @@ public unsafe partial class Scanner
         }
 
         // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-        return FindPattern_Simple(pattern, position);
+        return FindPatternSimple(data + position, dataLength - position, pattern).AddOffset(position);
     }
 
     /// <summary>
     /// Generates byte-Vectors that are right-padded with 0 from a pattern. The first byte is skipped.
     /// </summary>
     /// <param name="cbPattern">The pattern in question.</param>
+#if NET5_0_OR_GREATER
+    [SkipLocalsInit]
+#endif
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static Vector256<byte>[] PadPatternToVector256Avx(in SimdPatternScanData cbPattern)
     {
         int patternLen     = cbPattern.Mask.Length;

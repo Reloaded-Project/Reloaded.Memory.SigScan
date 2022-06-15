@@ -115,4 +115,9 @@ public ref struct CompiledScanPattern
             }
         }
     }
+    
+    /// <summary>
+    /// Implicitly converts a string to a scan pattern.
+    /// </summary>
+    public static implicit operator CompiledScanPattern(string pattern) => new(pattern);
 }

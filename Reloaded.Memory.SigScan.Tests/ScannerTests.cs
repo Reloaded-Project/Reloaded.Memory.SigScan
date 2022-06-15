@@ -116,7 +116,7 @@ namespace Reloaded.Memory.SigScan.Tests
 
             Assert.Equal(resultCompiledSse, resultCompiledAvx);
             Assert.Equal(resultCompiledSse, resultSimple);
-            Assert.Equal(resultCompiled, resultSimple);
+            Assert.Equal(resultCompiledSse, resultCompiled);
             Assert.True(resultCompiled.Found);
             Assert.Equal(254, resultCompiled.Offset);
         }
