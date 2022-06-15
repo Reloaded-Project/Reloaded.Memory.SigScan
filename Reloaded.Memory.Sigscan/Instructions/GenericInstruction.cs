@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-
-namespace Reloaded.Memory.Sigscan.Instructions;
+﻿namespace Reloaded.Memory.Sigscan.Instructions;
 
 /// <summary>
 /// Represents a generic instruction to match an 8 byte masked value at a given address.

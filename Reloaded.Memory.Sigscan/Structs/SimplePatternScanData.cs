@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using Reloaded.Memory.Sigscan.Utility;
 
 namespace Reloaded.Memory.Sigscan.Structs;

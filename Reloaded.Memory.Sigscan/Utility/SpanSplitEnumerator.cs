@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Reloaded.Memory.Sigscan.Utility;
+﻿namespace Reloaded.Memory.Sigscan.Utility;
 
 /// <summary>
 /// Creates a <see cref="SpanSplitEnumerator{TSpanType}"/> that allows for the efficient enumeration of a string

@@ -14,6 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageIconUrl>https://avatars1.githubusercontent.com/u/45473408</PackageIconUrl>
 
+    <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DefineConstants Condition="'$(TargetFramework)' != 'netstandard2.0'">$(DefineConstants);SPAN_API</DefineConstants>
     <DefineConstants Condition="('$(TargetFramework)' == 'netcoreapp3.1') Or ('$(TargetFramework)' == 'net5.0')">$(DefineConstants);SIMD_INTRINSICS</DefineConstants>

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Reloaded.Memory.Sigscan.Instructions;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
 
 #if SIMD_INTRINSICS
-using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
 

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 using Reloaded.Memory.Sigscan.Instructions;
-
-#if SIMD_INTRINSICS
-using System.Runtime.Intrinsics;
-using System.Runtime.Intrinsics.X86;
-#endif
 
 namespace Reloaded.Memory.Sigscan.Structs;
 
@@ -15,7 +9,7 @@ namespace Reloaded.Memory.Sigscan.Structs;
 /// </summary>
 public ref struct CompiledScanPattern
 {
-    private const  string MaskIgnore      = "??";
+    private const string MaskIgnore = "??";
 
     /// <summary>
     /// The pattern the instruction set was created from.
