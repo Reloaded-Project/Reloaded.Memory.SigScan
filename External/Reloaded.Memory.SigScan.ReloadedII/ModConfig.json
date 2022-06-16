@@ -1,0 +1,20 @@
+{
+  "ModId": "Reloaded.Memory.SigScan.ReloadedII",
+  "ModName": "Library: Reloaded.Memory.Sigscan for Reloaded II",
+  "ModAuthor": "Sewer56",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Shared implementation of Reloaded.Memory.Sigscan",
+  "ModDll": "Reloaded.Memory.SigScan.ReloadedII.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/Reloaded.Memory.SigScan.ReloadedII.dll",
+  "ModR2RManagedDll64": "x64/Reloaded.Memory.SigScan.ReloadedII.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": true,
+  "ReleaseMetadataFileName": "Reloaded.Memory.SigScan.ReloadedII.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [ ],
+  "OptionalDependencies": [],
+  "SupportedAppId": []
+}

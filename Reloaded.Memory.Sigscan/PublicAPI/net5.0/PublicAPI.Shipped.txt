@@ -1,0 +1,55 @@
+﻿readonly Reloaded.Memory.Sigscan.Structs.CompiledScanPattern.Length -> int
+readonly Reloaded.Memory.Sigscan.Structs.CompiledScanPattern.Pattern -> string
+Reloaded.Memory.Sigscan.Scanner
+Reloaded.Memory.Sigscan.Scanner.Dispose() -> void
+Reloaded.Memory.Sigscan.Scanner.FindPattern(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Scanner.FindPatterns(System.Collections.Generic.IReadOnlyList<string> patterns, bool loadBalance = false) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult[]
+Reloaded.Memory.Sigscan.Scanner.FindPattern_Avx2(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Scanner.FindPattern_Compiled(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Scanner.FindPattern_Simple(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Scanner.FindPattern_Sse2(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Scanner.Scanner(byte* data, int length) -> void
+Reloaded.Memory.Sigscan.Scanner.Scanner(byte[] data) -> void
+Reloaded.Memory.Sigscan.Scanner.Scanner(System.Diagnostics.Process process, System.Diagnostics.ProcessModule module) -> void
+Reloaded.Memory.Sigscan.Scanner.~Scanner() -> void
+Reloaded.Memory.Sigscan.Structs.CompiledScanPattern
+Reloaded.Memory.Sigscan.Structs.CompiledScanPattern.CompiledScanPattern() -> void
+Reloaded.Memory.Sigscan.Structs.CompiledScanPattern.CompiledScanPattern(string stringPattern) -> void
+Reloaded.Memory.Sigscan.Structs.GenericInstruction
+Reloaded.Memory.Sigscan.Structs.GenericInstruction.GenericInstruction() -> void
+Reloaded.Memory.Sigscan.Structs.GenericInstruction.GenericInstruction(nuint longValue, nuint mask) -> void
+Reloaded.Memory.Sigscan.Structs.GenericInstruction.LongValue -> nuint
+Reloaded.Memory.Sigscan.Structs.GenericInstruction.Mask -> nuint
+Reloaded.Memory.Sigscan.Structs.SimdPatternScanData
+Reloaded.Memory.Sigscan.Structs.SimdPatternScanData.Bytes -> byte[]
+Reloaded.Memory.Sigscan.Structs.SimdPatternScanData.LeadingIgnoreCount -> int
+Reloaded.Memory.Sigscan.Structs.SimdPatternScanData.Mask -> byte[]
+Reloaded.Memory.Sigscan.Structs.SimdPatternScanData.SimdPatternScanData() -> void
+Reloaded.Memory.Sigscan.Structs.SimdPatternScanData.SimdPatternScanData(string stringPattern) -> void
+Reloaded.Memory.Sigscan.Structs.SimplePatternScanData
+Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.Bytes -> byte[]
+Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.Mask -> byte[]
+Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.Pattern -> string
+Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.SimplePatternScanData() -> void
+Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.SimplePatternScanData(string stringPattern) -> void
+Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>
+Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.Current.get -> System.ReadOnlySpan<TSpanType>
+Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.MoveNext() -> bool
+Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.SpanSplitEnumerator() -> void
+Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.SpanSplitEnumerator(System.ReadOnlySpan<TSpanType> item, TSpanType splitItem) -> void
+Reloaded.Memory.Sigscan.Utility.SpanSplitEnumerator<TSpanType>.SplitItem.get -> TSpanType
+static Reloaded.Memory.Sigscan.Scanner.FindPatternAvx2(byte* data, int dataLength, string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+static Reloaded.Memory.Sigscan.Scanner.FindPatternCompiled(byte* data, int dataLength, Reloaded.Memory.Sigscan.Structs.CompiledScanPattern pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+static Reloaded.Memory.Sigscan.Scanner.FindPatternSimple(byte* data, int dataLength, Reloaded.Memory.Sigscan.Structs.SimplePatternScanData pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+static Reloaded.Memory.Sigscan.Scanner.FindPatternSse2(byte* data, int dataLength, string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+static Reloaded.Memory.Sigscan.Structs.CompiledScanPattern.implicit operator Reloaded.Memory.Sigscan.Structs.CompiledScanPattern(string pattern) -> Reloaded.Memory.Sigscan.Structs.CompiledScanPattern
+static Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.implicit operator Reloaded.Memory.Sigscan.Structs.SimplePatternScanData(string pattern) -> Reloaded.Memory.Sigscan.Structs.SimplePatternScanData
+virtual Reloaded.Memory.Sigscan.Scanner.Dispose(bool disposing) -> void
+Reloaded.Memory.Sigscan.ScannerFactory
+Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(byte* data, int length) -> Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(byte[] data) -> Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(System.Diagnostics.Process process, System.Diagnostics.ProcessModule module) -> Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.ScannerFactory.ScannerFactory() -> void
+Reloaded.Memory.Sigscan.Scanner.Scanner(System.Diagnostics.Process process) -> void
+Reloaded.Memory.Sigscan.Scanner.FindPatternsCached(System.Collections.Generic.IReadOnlyList<string> patterns, bool loadBalance = false) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult[]
+Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(System.Diagnostics.Process process) -> Reloaded.Memory.Sigscan.Definitions.IScanner

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <Authors>Sewer56</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -14,16 +14,27 @@
     <RepositoryType>git</RepositoryType>
     <PackageIconUrl>https://avatars1.githubusercontent.com/u/45473408</PackageIconUrl>
 
+    <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DefineConstants Condition="'$(TargetFramework)' != 'netstandard2.0'">$(DefineConstants);SPAN_API</DefineConstants>
-    <DefineConstants Condition="('$(TargetFramework)' == 'netcoreapp3.1') Or ('$(TargetFramework)' == 'net5.0')">$(DefineConstants);SIMD_INTRINSICS</DefineConstants>
+    <DefineConstants Condition="('$(TargetFramework)' == 'netcoreapp3.1') Or ('$(TargetFramework)' == 'net5.0') Or ('$(TargetFramework)' == 'net6.0')">$(DefineConstants);SIMD_INTRINSICS</DefineConstants>
 
     <LangVersion>preview</LangVersion>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>2.0.0</Version>
+    <Version>3.0.0</Version>
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup>
+    <AdditionalFiles Include="PublicAPI/$(TargetFramework)/PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI/$(TargetFramework)/PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Reloaded.Memory" Version="4.1.4" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" Version="4.5.3" />
   </ItemGroup>
@@ -33,6 +44,14 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="PublicAPI\netstandard2.1\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Reloaded.Memory.Sigscan.Definitions\Reloaded.Memory.Sigscan.Definitions.csproj" />
   </ItemGroup>
 
 </Project>

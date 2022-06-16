@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
+using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.Sigscan.Structs;
 
 #if SIMD_INTRINSICS
@@ -47,11 +44,16 @@ public unsafe partial class Scanner
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>-1 if pattern is not found.</returns>
-    internal PatternScanResult FindPatternSse2(byte* data, int dataLength, string pattern)
+#if NET5_0_OR_GREATER
+    [SkipLocalsInit]
+#endif
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static PatternScanResult FindPatternSse2(byte* data, int dataLength, string pattern)
     {
+        var dataPtr = data;
         var patternData = new SimdPatternScanData(pattern);
         if (patternData.Bytes.Length == 1) // For single byte search, fall back.
-            return FindPattern_Simple(pattern);
+            return FindPatternSimple(data, dataLength, pattern);
 
         var matchTable       = BuildMatchIndexes(patternData);
         var patternVectors   = PadPatternToVector128Sse(patternData);
@@ -68,18 +70,18 @@ public unsafe partial class Scanner
         int simdJump = SseRegisterLength - 1;
         int searchLength = dataLength - Math.Max(patternData.Bytes.Length, SseRegisterLength);
         int position = 0;
-        for (; position < searchLength; position++, data += 1)
+        for (; position < searchLength; position++, dataPtr += 1)
         {
             // Problem: If pattern starts with unknown, will never match.
 
-            var rhs = Sse2.LoadVector128(data);
+            var rhs = Sse2.LoadVector128(dataPtr);
             var equal = Sse2.CompareEqual(pFirstVec, rhs);
             int findFirstByte = Sse2.MoveMask(equal);
 
             if (findFirstByte == 0)
             {
                 position += simdJump;
-                data += simdJump;
+                dataPtr += simdJump;
                 continue;
             }
 
@@ -87,13 +89,13 @@ public unsafe partial class Scanner
             int offset = BitOperations.TrailingZeroCount((uint)findFirstByte);
             offset -= leadingIgnoreCount;
             position += offset;
-            data += offset;
+            dataPtr += offset;
 
             int iMatchTableIndex = 0;
             bool found = true;
             for (int i = 0; i < vectorLength; i++)
             {
-                var nextByte = data + (1 + (i * SseRegisterLength));
+                var nextByte = dataPtr + (1 + (i * SseRegisterLength));
                 var rhsNo2   = Sse2.LoadVector128(nextByte);
                 var curPatternVector = Unsafe.Add(ref pVec, i);
 
@@ -125,7 +127,7 @@ public unsafe partial class Scanner
         }
 
         // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-        return FindPattern_Simple(pattern, position);
+        return FindPatternSimple(data + position, dataLength - position, pattern).AddOffset(position);
     }
 
     /// <summary>
@@ -133,6 +135,10 @@ public unsafe partial class Scanner
     /// the first match is skipped and all indexes are shifted to the left by 1.
     /// </summary>
     /// <param name="scanPattern">Data of the pattern to be scanned.</param>
+#if NET5_0_OR_GREATER
+    [SkipLocalsInit]
+#endif
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static ReadOnlySpan<ushort> BuildMatchIndexes(in SimdPatternScanData scanPattern)
     {
         // ORIGINAL CODE
@@ -157,6 +163,10 @@ public unsafe partial class Scanner
     /// Generates byte-Vectors that are right-padded with 0 from a pattern. The first byte is skipped.
     /// </summary>
     /// <param name="cbPattern">The pattern in question.</param>
+#if NET5_0_OR_GREATER
+    [SkipLocalsInit]
+#endif
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static Vector128<byte>[] PadPatternToVector128Sse(in SimdPatternScanData cbPattern)
     {
         int patternLen     = cbPattern.Mask.Length;

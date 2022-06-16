@@ -1,30 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
+using Reloaded.Memory.Sigscan.Benchmark.Benchmarks;
+using Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Multithread;
 
 namespace Reloaded.Memory.Sigscan.Benchmark.Columns
 {
     public class Speed : IColumn
     {
-        public float MegaBytesOffset;
+        public Func<Summary, BenchmarkCase, long> GetFileSizeBytes;
 
-        public Speed(float megaBytesOffset)
+        public Speed(Func<Summary, BenchmarkCase, long> getFileSize)
         {
-            MegaBytesOffset = megaBytesOffset;
+            GetFileSizeBytes = getFileSize;
         }
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase)
         {
             var ourReport = summary.Reports.First(x => x.BenchmarkCase.Equals(benchmarkCase));
             var mean = ourReport.ResultStatistics.Mean;
-            var meanSeconds = mean / 1000000000F;
+            var meanSeconds = mean / 1000_000_000F; // ns to seconds
+            var sizeMb = BenchmarkUtils.BytesToMB(GetFileSizeBytes(summary, benchmarkCase));
 
-            // Convert to seconds.
-            return $"{MegaBytesOffset / meanSeconds}";
+            // Convert to MB/s.
+            return $"{(sizeMb / meanSeconds):#####.00}";
         }
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style) => GetValue(summary, benchmarkCase);
@@ -32,7 +33,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Columns
         public bool IsAvailable(Summary summary) => true;
 
         public string Id { get; } = nameof(Speed);
-        public string ColumnName { get; } = "Speed";
+        public string ColumnName { get; } = "Speed (MB/s)";
         public bool AlwaysShow { get; } = true;
         public ColumnCategory Category { get; } = ColumnCategory.Custom;
         public int PriorityInCategory { get; } = 0;

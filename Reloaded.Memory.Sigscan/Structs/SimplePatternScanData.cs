@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using Reloaded.Memory.Sigscan.Utility;
 
 namespace Reloaded.Memory.Sigscan.Structs;
@@ -28,6 +26,11 @@ public ref struct SimplePatternScanData
     public byte[] Mask;
 
     /// <summary>
+    /// The original string from which this pattern was created.
+    /// </summary>
+    public string Pattern;
+
+    /// <summary>
     /// Creates a new pattern scan target given a string representation of a pattern.
     /// </summary>
     /// <param name="stringPattern">
@@ -37,6 +40,8 @@ public ref struct SimplePatternScanData
     /// </param>
     public SimplePatternScanData(string stringPattern)
     {
+        Pattern = stringPattern;
+
 #if SPAN_API
         var enumerator       = new SpanSplitEnumerator<char>(stringPattern, ' ');
 #else
@@ -71,4 +76,9 @@ public ref struct SimplePatternScanData
             Bytes  = _bytes.ToArray();
         }
     }
+
+    /// <summary>
+    /// Implicitly converts a string to a scan pattern.
+    /// </summary>
+    public static implicit operator SimplePatternScanData(string pattern) => new(pattern);
 }

@@ -1,0 +1,20 @@
+{
+  "ModId": "Reloaded.Memory.SigScan.ReloadedII.Test",
+  "ModName": "TestMod for SigScan Shared Lib",
+  "ModAuthor": "Sewer56",
+  "ModVersion": "1.0.0",
+  "ModDescription": "I love you.",
+  "ModDll": "Reloaded.Memory.SigScan.ReloadedII.Test.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/Reloaded.Memory.SigScan.ReloadedII.Test.dll",
+  "ModR2RManagedDll64": "x64/Reloaded.Memory.SigScan.ReloadedII.Test.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "Reloaded.Memory.SigScan.ReloadedII.Test.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": true,
+  "ModDependencies": [ "Reloaded.Memory.SigScan.ReloadedII" ],
+  "OptionalDependencies": [],
+  "SupportedAppId": []
+}

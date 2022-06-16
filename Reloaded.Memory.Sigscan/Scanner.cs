@@ -1,12 +1,13 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Reloaded.Memory.Sigscan.Instructions;
+using Reloaded.Memory.Sigscan.Definitions;
+using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
 
 #if SIMD_INTRINSICS
-using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
 
@@ -15,7 +16,7 @@ namespace Reloaded.Memory.Sigscan;
 /// <summary>
 /// Provides an implementation of a simple signature scanner sitting ontop of Reloaded.Memory.
 /// </summary>
-public unsafe partial class Scanner : IDisposable
+public unsafe partial class Scanner : IScanner, IDisposable
 {
     private static Process _currentProcess = Process.GetCurrentProcess();
 
@@ -34,6 +35,13 @@ public unsafe partial class Scanner : IDisposable
         _dataPtr  = (byte*)_gcHandle.Value.AddrOfPinnedObject();
         _dataLength = data.Length;
     }
+
+    /// <summary>
+    /// Creates a signature scanner given a process.
+    /// The scanner will be initialised to scan the main module of the process.
+    /// </summary>
+    /// <param name="process">The process from which to scan patterns in. (Not Null)</param>
+    public Scanner(Process process) : this(process, process.MainModule) { }
 
     /// <summary>
     /// Creates a signature scanner given a process and a module (EXE/DLL)
@@ -97,16 +105,7 @@ public unsafe partial class Scanner : IDisposable
         }
     }
 
-    /// <summary>
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// The method used depends on the available hardware; will use vectorized instructions if available.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The pattern to look for inside the given region.
-    ///     Example: "11 22 33 ?? 55".
-    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
-    /// </param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    /// <inheritdoc/>
     public PatternScanResult FindPattern(string pattern)
     {
 #if SIMD_INTRINSICS
@@ -117,175 +116,85 @@ public unsafe partial class Scanner : IDisposable
             return FindPatternSse2(_dataPtr, _dataLength, pattern);
 #endif
 
-        return FindPattern_Compiled(pattern);
+        return FindPatternCompiled(_dataPtr, _dataLength, pattern);
+    }
+
+    /// <inheritdoc/>
+    public PatternScanResult[] FindPatterns(IReadOnlyList<string> patterns, bool loadBalance = false)
+    {
+        var results = new PatternScanResult[patterns.Count];
+        if (loadBalance)
+        {
+            Parallel.ForEach(Partitioner.Create(patterns.ToArray(), true), (item, _, index) =>
+            {
+                results[index] = FindPattern(item);
+            });
+        }
+        else
+        {
+            Parallel.ForEach(Partitioner.Create(0, patterns.Count), tuple =>
+            {
+                for (int x = tuple.Item1; x < tuple.Item2; x++)
+                    results[x] = FindPattern(patterns[x]);
+            });
+        }
+
+        return results;
+    }
+
+    /// <inheritdoc/>
+    public PatternScanResult[] FindPatternsCached(IReadOnlyList<string> patterns, bool loadBalance = false)
+    {
+        var results = new PatternScanResult[patterns.Count];
+        var completedPatternCache = new ConcurrentDictionary<string, PatternScanResult>(StringComparer.OrdinalIgnoreCase);
+
+        if (loadBalance)
+        {
+            Parallel.ForEach(Partitioner.Create(patterns.ToArray(), true), (item, _, index) =>
+            {
+                if (completedPatternCache.TryGetValue(item, out var value))
+                    results[index] = value;
+                else
+                    AddResult(item, (int)index);
+            });
+        }
+        else
+        {
+            Parallel.ForEach(Partitioner.Create(0, patterns.Count), tuple =>
+            {
+                for (int x = tuple.Item1; x < tuple.Item2; x++)
+                {
+                    var pattern = patterns[x];
+                    if (completedPatternCache.TryGetValue(pattern, out var value))
+                        results[x] = value;
+                    else
+                        AddResult(pattern, (int)x);
+                }
+            });
+        }
+
+        return results;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void AddResult(string pattern, int index)
+        {
+            var scanResult = FindPattern(pattern);
+            results[index] = scanResult;
+            completedPatternCache[pattern] = scanResult;
+        }
     }
 
 #if SIMD_INTRINSICS
-    /// <summary>
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method is based on a modified version of 'LazySIMD' - by uberhalit.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The pattern to look for inside the given region.
-    ///     Example: "11 22 33 ?? 55".
-    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
-    /// </param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    /// <inheritdoc/>
     public PatternScanResult FindPattern_Avx2(string pattern) => FindPatternAvx2(_dataPtr, _dataLength, pattern);
 
-    /// <summary>
-    /// [SSE2 Variant]
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method is based on a modified version of 'LazySIMD' - by uberhalit.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The pattern to look for inside the given region.
-    ///     Example: "11 22 33 ?? 55".
-    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
-    /// </param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    /// <inheritdoc/>
     public PatternScanResult FindPattern_Sse2(string pattern) => FindPatternSse2(_dataPtr, _dataLength, pattern);
 #endif
 
-    /// <summary>
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generates a list of instructions, which specify a set of bytes and mask to check against.
-    /// It is fairly performant on 64-bit systems but not much faster than the simple implementation on 32-bit systems.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The pattern to look for inside the given region.
-    ///     Example: "11 22 33 ?? 55".
-    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
-    /// </param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult FindPattern_Compiled(string pattern) => FindPattern_Compiled(new CompiledScanPattern(pattern));
+    /// <inheritdoc/>
+    public PatternScanResult FindPattern_Compiled(string pattern) => FindPatternCompiled(_dataPtr, _dataLength, pattern);
 
-    /// <summary>
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generally works better when the expected offset is bigger than 4096.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The compiled pattern to look for inside the given region.
-    /// </param>
-    /// <param name="startingIndex">The index to start searching at.</param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult FindPattern_Compiled(CompiledScanPattern pattern, int startingIndex = 0)
-    {
-        int numberOfInstructions = pattern.NumberOfInstructions;
-        byte* dataBasePointer = _dataPtr;
-        byte* currentDataPointer;
-        int lastIndex = _dataLength - Math.Max(pattern.Length, sizeof(nint));
-
-        // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
-        fixed (GenericInstruction* instructions = pattern.Instructions)
-        {
-            var firstInstruction = instructions[0];
-
-            /*
-                There is an optimization going on in here apart from manual inlining which is why
-                this function is a tiny mess of more goto statements than it seems necessary.
-
-                Basically, it is considerably faster to reference a variable on the stack, than it is on the heap.
-            
-                This is because the compiler can address the stack bound variable relative to the current stack pointer,
-                as opposing to having to dereference a pointer and then take an offset from the result address.
-                
-                This ends up being considerably faster, which is important in a scenario where we are entirely CPU bound.
-            */
-
-            int x = startingIndex;
-            while (x < lastIndex)
-            {
-                currentDataPointer = dataBasePointer + x;
-                var compareValue = *(nuint*)currentDataPointer & firstInstruction.Mask;
-                if (compareValue != firstInstruction.LongValue)
-                    goto singleInstructionLoopExit;
-
-                if (numberOfInstructions <= 1)
-                    return new PatternScanResult(x);
-
-                /* When NumberOfInstructions > 1 */
-                currentDataPointer += sizeof(nuint);
-                int y = 1;
-                do
-                {
-                    compareValue = *(nuint*)currentDataPointer & instructions[y].Mask;
-                    if (compareValue != instructions[y].LongValue)
-                        goto singleInstructionLoopExit;
-
-                    currentDataPointer += sizeof(nuint);
-                    y++;
-                }
-                while (y < numberOfInstructions);
-
-                return new PatternScanResult(x);
-
-                singleInstructionLoopExit:;
-                x++;
-            }
-                
-
-            // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
-            return FindPattern_Simple(pattern.Pattern, lastIndex);
-
-            // PS. This function is a prime example why the `goto` statement is frowned upon.
-            // I have to use it here for performance though.
-        }
-    }
-
-    /// <summary>
-    /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method uses the simple search, which simply iterates over all bytes, reading max 1 byte at once.
-    /// This method generally works better when the expected offset is smaller than 4096.
-    /// </summary>
-    /// <param name="pattern">
-    ///     The pattern to look for inside the given region.
-    ///     Example: "11 22 33 ?? 55".
-    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
-    /// </param>
-    /// <param name="startingIndex">The index to start searching at.</param>
-    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-    public PatternScanResult FindPattern_Simple(string pattern, int startingIndex = 0)
-    {
-        var target      = new SimplePatternScanData(pattern);
-        var patternData = target.Bytes;
-        var patternMask = target.Mask;
-
-        int lastIndex   = (_dataLength - patternMask.Length) + 1;
-
-        fixed (byte* patternDataPtr = patternData)
-        {
-            for (int x = startingIndex; x < lastIndex; x++)
-            {
-                int patternDataOffset = 0;
-                int currentIndex = x;
-
-                int y = 0;
-                do
-                {
-                    // Some performance is saved by making the mask a non-string, since a string comparison is a bit more involved with e.g. null checks.
-                    if (patternMask[y] == 0x0)
-                    {
-                        currentIndex += 1;
-                        y++;
-                        continue;
-                    }
-
-                    // Performance: No need to check if Mask is `x`. The only supported wildcard is '?'.
-                    if (_dataPtr[currentIndex] != patternDataPtr[patternDataOffset])
-                        goto loopexit;
-
-                    currentIndex += 1;
-                    patternDataOffset += 1;
-                    y++;
-                }
-                while (y < patternMask.Length);
-
-                return new PatternScanResult(x);
-                loopexit:;
-            }
-
-            return new PatternScanResult(-1);
-        }
-    }
+    /// <inheritdoc/>
+    public PatternScanResult FindPattern_Simple(string pattern) => FindPatternSimple(_dataPtr, _dataLength, pattern);
 }
