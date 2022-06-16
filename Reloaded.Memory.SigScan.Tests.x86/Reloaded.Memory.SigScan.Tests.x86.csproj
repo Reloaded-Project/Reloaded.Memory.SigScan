@@ -7,8 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Reloaded.Memory.SigScan.Tests\MultithreadScannerTests.cs" Link="MultithreadScannerTests.cs" />
     <Compile Include="..\Reloaded.Memory.SigScan.Tests\PatternScanDataTests.cs" Link="PatternScanDataTests.cs" />
     <Compile Include="..\Reloaded.Memory.SigScan.Tests\ScannerTests.cs" Link="ScannerTests.cs" />
+    <Compile Include="..\Reloaded.Memory.SigScan.Tests\ScannerTestBase.cs" Link="ScannerTestBase.cs" />
   </ItemGroup>
 
   <ItemGroup>

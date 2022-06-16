@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
@@ -34,6 +35,13 @@ public unsafe partial class Scanner : IScanner, IDisposable
         _dataPtr  = (byte*)_gcHandle.Value.AddrOfPinnedObject();
         _dataLength = data.Length;
     }
+
+    /// <summary>
+    /// Creates a signature scanner given a process.
+    /// The scanner will be initialised to scan the main module of the process.
+    /// </summary>
+    /// <param name="process">The process from which to scan patterns in. (Not Null)</param>
+    public Scanner(Process process) : this(process, process.MainModule) { }
 
     /// <summary>
     /// Creates a signature scanner given a process and a module (EXE/DLL)
@@ -132,6 +140,48 @@ public unsafe partial class Scanner : IScanner, IDisposable
         }
 
         return results;
+    }
+
+    /// <inheritdoc/>
+    public PatternScanResult[] FindPatternsCached(IReadOnlyList<string> patterns, bool loadBalance = false)
+    {
+        var results = new PatternScanResult[patterns.Count];
+        var completedPatternCache = new ConcurrentDictionary<string, PatternScanResult>(StringComparer.OrdinalIgnoreCase);
+
+        if (loadBalance)
+        {
+            Parallel.ForEach(Partitioner.Create(patterns.ToArray(), true), (item, _, index) =>
+            {
+                if (completedPatternCache.TryGetValue(item, out var value))
+                    results[index] = value;
+                else
+                    AddResult(item, (int)index);
+            });
+        }
+        else
+        {
+            Parallel.ForEach(Partitioner.Create(0, patterns.Count), tuple =>
+            {
+                for (int x = tuple.Item1; x < tuple.Item2; x++)
+                {
+                    var pattern = patterns[x];
+                    if (completedPatternCache.TryGetValue(pattern, out var value))
+                        results[x] = value;
+                    else
+                        AddResult(pattern, (int)x);
+                }
+            });
+        }
+
+        return results;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void AddResult(string pattern, int index)
+        {
+            var scanResult = FindPattern(pattern);
+            results[index] = scanResult;
+            completedPatternCache[pattern] = scanResult;
+        }
     }
 
 #if SIMD_INTRINSICS

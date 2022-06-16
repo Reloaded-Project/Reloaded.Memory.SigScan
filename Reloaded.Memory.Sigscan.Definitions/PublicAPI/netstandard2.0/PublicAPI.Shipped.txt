@@ -1,1 +1,19 @@
-﻿
+﻿override Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.Equals(object obj) -> bool
+override Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.GetHashCode() -> int
+Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.Definitions.IScanner.FindPattern(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Definitions.IScanner.FindPatterns(System.Collections.Generic.IReadOnlyList<string> patterns, bool loadBalance = false) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult[]
+Reloaded.Memory.Sigscan.Definitions.IScanner.FindPattern_Compiled(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Definitions.IScanner.FindPattern_Simple(string pattern) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Definitions.IScannerFactory
+Reloaded.Memory.Sigscan.Definitions.IScannerFactory.CreateScanner(byte* data, int length) -> Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.Definitions.IScannerFactory.CreateScanner(byte[] data) -> Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.Definitions.IScannerFactory.CreateScanner(System.Diagnostics.Process process) -> Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.Definitions.IScannerFactory.CreateScanner(System.Diagnostics.Process process, System.Diagnostics.ProcessModule module) -> Reloaded.Memory.Sigscan.Definitions.IScanner
+Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.AddOffset(int offset) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.Equals(Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult other) -> bool
+Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.Found.get -> bool
+Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.Offset.get -> int
+Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.PatternScanResult() -> void
+Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult.PatternScanResult(int offset) -> void

@@ -29,6 +29,15 @@ public interface IScanner : IDisposable
     /// <returns>Results of the scan.</returns>
     PatternScanResult[] FindPatterns(IReadOnlyList<string> patterns, bool loadBalance = false);
 
+    /// <summary>
+    /// Finds multiple patterns within a given scan range, in multithreaded fashion.
+    /// This implementation guards against scanning duplicates, at negligible speed expense.
+    /// </summary>
+    /// <param name="patterns">The patterns to scan.</param>
+    /// <param name="loadBalance">True to use load balancing. Optimal with many patterns (64+) of variable length.</param>
+    /// <returns>Results of the scan.</returns>
+    PatternScanResult[] FindPatternsCached(IReadOnlyList<string> patterns, bool loadBalance = false);
+
 #if SIMD_INTRINSICS
     /// <summary>
     /// Attempts to find a given pattern inside the memory region this class was created with.

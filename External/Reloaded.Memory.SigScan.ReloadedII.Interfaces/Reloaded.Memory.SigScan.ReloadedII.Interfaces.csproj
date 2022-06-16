@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <PackageId>Reloaded.Memory.SigScan.ReloadedII.Interfaces</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Sewer56</Authors>
+    <Description>Interface definitions for Reloaded.Memory.Sigscan Shared Library.</Description>
+    <Copyright>LGPL V3</Copyright>
+    <PackageProjectUrl>https://github.com/Reloaded-Project/Reloaded.Memory.SigScan</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Reloaded-Project/Reloaded.Memory.SigScan</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageIconUrl>https://avatars1.githubusercontent.com/u/45473408</PackageIconUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Reloaded.Memory.Sigscan.Definitions\Reloaded.Memory.Sigscan.Definitions.csproj" />
+  </ItemGroup>
+
+</Project>

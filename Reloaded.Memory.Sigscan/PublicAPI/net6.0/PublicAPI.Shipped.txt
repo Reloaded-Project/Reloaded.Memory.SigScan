@@ -50,3 +50,6 @@ Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(byte* data, int length) -> 
 Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(byte[] data) -> Reloaded.Memory.Sigscan.Definitions.IScanner
 Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(System.Diagnostics.Process process, System.Diagnostics.ProcessModule module) -> Reloaded.Memory.Sigscan.Definitions.IScanner
 Reloaded.Memory.Sigscan.ScannerFactory.ScannerFactory() -> void
+Reloaded.Memory.Sigscan.Scanner.Scanner(System.Diagnostics.Process process) -> void
+Reloaded.Memory.Sigscan.Scanner.FindPatternsCached(System.Collections.Generic.IReadOnlyList<string> patterns, bool loadBalance = false) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult[]
+Reloaded.Memory.Sigscan.ScannerFactory.CreateScanner(System.Diagnostics.Process process) -> Reloaded.Memory.Sigscan.Definitions.IScanner

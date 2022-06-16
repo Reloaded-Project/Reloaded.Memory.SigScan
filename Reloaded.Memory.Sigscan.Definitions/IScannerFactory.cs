@@ -14,6 +14,13 @@ public unsafe interface IScannerFactory
     public IScanner CreateScanner(byte[] data);
 
     /// <summary>
+    /// Creates a signature scanner given a process.
+    /// The scanner will be initialised to scan the main module of the process.
+    /// </summary>
+    /// <param name="process">The process from which to scan patterns in. (Not Null)</param>
+    public IScanner CreateScanner(Process process);
+
+    /// <summary>
     /// Creates a signature scanner given a process and a module (EXE/DLL)
     /// from which the signatures are to be found.
     /// </summary>
