@@ -23,14 +23,14 @@ on:
   workflow_dispatch:
 
 env: 
-  PUBLISH_COMMON_PATH: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/
+  PUBLISH_COMMON_PATH: './External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/'
 
-  PUBLISH_GAMEBANANA_PATH: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/GameBanana
-  PUBLISH_GITHUB_PATH: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/Generic
-  PUBLISH_NUGET_PATH: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/NuGet
+  PUBLISH_GAMEBANANA_PATH: './External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/GameBanana'
+  PUBLISH_GITHUB_PATH: './External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/Generic'
+  PUBLISH_NUGET_PATH: './External/Reloaded.Memory.SigScan.ReloadedII/Publish/ToUpload/NuGet'
   
-  PUBLISH_CHANGELOG_PATH: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish/Changelog.md
-  PUBLISH_PATH: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish
+  PUBLISH_CHANGELOG_PATH: './External/Reloaded.Memory.SigScan.ReloadedII/Publish/Changelog.md'
+  PUBLISH_PATH: './External/Reloaded.Memory.SigScan.ReloadedII/Publish'
 
   # Default value is official Reloaded package server.  
   NUGET_URL: http://packages.sewer56.moe:5000/v3/index.json
@@ -44,7 +44,6 @@ jobs:
     defaults:
       run:
         shell: pwsh
-        working-directory: './External/Reloaded.Memory.SigScan.ReloadedII'
     
     steps:
     - uses: actions/checkout@v2
@@ -81,7 +80,7 @@ jobs:
         }
         
     - name: Build
-      run: ./Publish.ps1 -ChangelogPath "$env:PUBLISH_CHANGELOG_PATH"
+      run: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish.ps1 -ChangelogPath "$env:PUBLISH_CHANGELOG_PATH"
       
     - name: Upload GitHub Release Artifact
       uses: actions/upload-artifact@v2.2.4
@@ -123,8 +122,6 @@ jobs:
       uses: softprops/action-gh-release@v0.1.14
       if: env.IS_RELEASE == 'true'
       with:
-        # Path to load note-worthy description of changes in release from
-        append_body: true
         # Newline-delimited list of path globs for asset files to upload
         files: |
           ${{ env.PUBLISH_GITHUB_PATH }}/*
