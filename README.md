@@ -155,15 +155,6 @@ public int Simple()
 |   Simple | 3,271.7 us | 15.61 us | 14.60 us |  961.4902217649164 |
 ```
 
-### Worst Case Scenario 
-The worst case scenario occurs when an entire file is a repeating sequence of identical bytes e.g. `0A 0A 0A 0A 0A 0A 0A 0A 0A 0A` until a final byte of the file differs.
-
-In such case, assuming our search pattern is as such: `0A 0A 0A 0A 0A 0A 0A 0A 0B`, the speed drops by approximately 50% every time the pattern length is increased by 8.
-
-This is because at every step (byte) of the file the first multiples of 8 would match the `0A 0A 0A 0A 0A 0A 0A 0A` pattern.
-
-(In the naive simple case, the speed drops by ~87.5% in the worst case, however beyond that point performance deficit slows down, presumable due to CPU branch prediction).
-
 ### Other Benchmarks
 For other benchmarks, please see the `Reloaded.Memory.Sigscan.Benchmark` project in this repository.
 
