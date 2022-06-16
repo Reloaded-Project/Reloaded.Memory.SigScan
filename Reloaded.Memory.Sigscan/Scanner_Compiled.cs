@@ -1,6 +1,6 @@
-﻿using System.Runtime.CompilerServices;
-using Reloaded.Memory.Sigscan.Instructions;
+﻿using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.Sigscan.Structs;
+using System.Runtime.CompilerServices;
 
 namespace Reloaded.Memory.Sigscan;
 

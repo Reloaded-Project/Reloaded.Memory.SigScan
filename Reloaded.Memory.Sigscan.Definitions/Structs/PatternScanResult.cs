@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Reloaded.Memory.Sigscan.Structs;
+namespace Reloaded.Memory.Sigscan.Definitions.Structs;
 
 /// <summary />
 public struct PatternScanResult

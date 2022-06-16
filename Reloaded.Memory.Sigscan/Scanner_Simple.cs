@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.Sigscan.Structs;
 
 namespace Reloaded.Memory.Sigscan;

@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.Sigscan.Structs;
 #if SIMD_INTRINSICS
 using System.Runtime.Intrinsics;

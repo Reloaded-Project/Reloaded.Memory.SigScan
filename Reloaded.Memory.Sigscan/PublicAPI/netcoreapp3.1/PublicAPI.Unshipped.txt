@@ -1,12 +1,1 @@
-﻿Reloaded.Memory.Sigscan.Scanner.FindPatterns(System.Collections.Generic.IReadOnlyList<string> patterns, bool loadBalance = false) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult[]
-Reloaded.Memory.Sigscan.Scanner.FindPattern_Avx2(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Scanner.FindPattern_Simple(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Scanner.FindPattern_Sse2(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Structs.PatternScanResult.AddOffset(int offset) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.Pattern -> string
-static Reloaded.Memory.Sigscan.Scanner.FindPatternAvx2(byte* data, int dataLength, string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-static Reloaded.Memory.Sigscan.Scanner.FindPatternCompiled(byte* data, int dataLength, Reloaded.Memory.Sigscan.Structs.CompiledScanPattern pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-static Reloaded.Memory.Sigscan.Scanner.FindPatternSimple(byte* data, int dataLength, Reloaded.Memory.Sigscan.Structs.SimplePatternScanData pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-static Reloaded.Memory.Sigscan.Scanner.FindPatternSse2(byte* data, int dataLength, string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
-static Reloaded.Memory.Sigscan.Structs.CompiledScanPattern.implicit operator Reloaded.Memory.Sigscan.Structs.CompiledScanPattern(string pattern) -> Reloaded.Memory.Sigscan.Structs.CompiledScanPattern
-static Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.implicit operator Reloaded.Memory.Sigscan.Structs.SimplePatternScanData(string pattern) -> Reloaded.Memory.Sigscan.Structs.SimplePatternScanData
+﻿

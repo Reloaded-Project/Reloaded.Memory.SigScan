@@ -5,6 +5,11 @@
     <TargetFrameworks>net5.0</TargetFrameworks>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <Platforms>AnyCPU;x86</Platforms>
+
+    <!-- For Trimming Testing -->
+    <!-- Test with: dotnet publish -f net6.0 -c Release -r win-x64 -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimmerDefaultAction>link</TrimmerDefaultAction>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Reloaded.Memory.Sigscan\Reloaded.Memory.Sigscan.csproj" />
+    <TrimmerRootAssembly Include="Reloaded.Memory.Sigscan" />
   </ItemGroup>
 
 </Project>
