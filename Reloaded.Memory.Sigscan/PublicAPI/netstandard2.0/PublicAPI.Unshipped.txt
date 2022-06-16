@@ -1,4 +1,5 @@
-﻿Reloaded.Memory.Sigscan.Scanner.FindPattern_Simple(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
+﻿Reloaded.Memory.Sigscan.Scanner.FindPatterns(System.Collections.Generic.IReadOnlyList<string> patterns, bool loadBalance = false) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult[]
+Reloaded.Memory.Sigscan.Scanner.FindPattern_Simple(string pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
 Reloaded.Memory.Sigscan.Structs.PatternScanResult.AddOffset(int offset) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult
 Reloaded.Memory.Sigscan.Structs.SimplePatternScanData.Pattern -> string
 static Reloaded.Memory.Sigscan.Scanner.FindPatternCompiled(byte* data, int dataLength, Reloaded.Memory.Sigscan.Structs.CompiledScanPattern pattern) -> Reloaded.Memory.Sigscan.Structs.PatternScanResult

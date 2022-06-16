@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Reloaded.Memory.Sigscan.Structs;
 using Reloaded.Memory.Sources;
@@ -115,6 +116,34 @@ public unsafe partial class Scanner : IDisposable
 #endif
 
         return FindPatternCompiled(_dataPtr, _dataLength, pattern);
+    }
+
+    /// <summary>
+    /// Finds multiple patterns within a given scan range, in multithreaded fashion.
+    /// </summary>
+    /// <param name="patterns">The patterns to scan.</param>
+    /// <param name="loadBalance">True to use load balancing. Optimal with many patterns (64+) of variable length.</param>
+    /// <returns>Results of the scan.</returns>
+    public PatternScanResult[] FindPatterns(IReadOnlyList<string> patterns, bool loadBalance = false)
+    {
+        var results     = new PatternScanResult[patterns.Count];
+        if (loadBalance)
+        {
+            Parallel.ForEach(Partitioner.Create(patterns.ToArray(), true), (item, _, index) =>
+            {
+                results[index] = FindPattern(item);
+            });
+        }
+        else
+        {
+            Parallel.ForEach(Partitioner.Create(0, patterns.Count), tuple =>
+            {
+                for (int x = tuple.Item1; x < tuple.Item2; x++)
+                    results[x] = FindPattern(patterns[x]);
+            });
+        }
+
+        return results;
     }
 
 #if SIMD_INTRINSICS
