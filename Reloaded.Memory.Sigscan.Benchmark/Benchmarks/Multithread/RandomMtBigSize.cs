@@ -7,30 +7,43 @@ using Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray;
 
 namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Multithread
 {
-    public class RandomMt : ScannerBenchmarkBase
+    public class RandomMtBigSize : ScannerBenchmarkBase
     {
-        [Params(1, 8, 128, 512)]
-        public int NumItems;
+        // 200MB, fuck Denuvo
+        const long ArraySize = 200_000_000;
 
-        private static Dictionary<int, long> _numItemsToTotalSize = new();
-        private static List<string> _patterns;
+        [Params(1, 64)]
+        public int NumItems;
         
+        private static List<string> _patterns;
+        private static Dictionary<int, long> _numItemsToTotalSize = new();
+
         public override void PerMethodSetup()
         {
             // Skip another method in class with same params.
             if (_patterns != null && _patterns.Count == NumItems)
                 return;
-            
+
+            Console.WriteLine($"[{nameof(RandomMtBigSize)}] Creating Random Test Data for Item Count: {NumItems}");
+            _data = BenchmarkUtils.CreateRandomArray((int)ArraySize);
+            _scanner = new Scanner(_data);
+
             // Pick some random patterns.
-            Console.WriteLine($"[{nameof(RandomMt)}] Creating Random Test Data for Item Count: {NumItems}");
             _patterns = BenchmarkUtils.CreateRandomPatterns(_data, NumItems, 12, out var totalBytes);
             _numItemsToTotalSize[NumItems] = totalBytes;
+            GC.Collect();
         }
 
         [Benchmark]
         public int Random_ST()
         {
             return _scanner.FindPattern(_patterns[0]).Offset;
+        }
+
+        [Benchmark]
+        public int Random_ST_Compiled()
+        {
+            return _scanner.FindPattern_Compiled(_patterns[0]).Offset;
         }
 
         [Benchmark]
@@ -55,7 +68,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Multithread
         public static long GetFileSize(Summary summary, BenchmarkCase benchmarkCase)
         {
             var numItems = benchmarkCase.Parameters[nameof(NumItems)];
-            return _numItemsToTotalSize[(int)numItems];
+            return ArraySize * (int)numItems;
         }
     }
 }

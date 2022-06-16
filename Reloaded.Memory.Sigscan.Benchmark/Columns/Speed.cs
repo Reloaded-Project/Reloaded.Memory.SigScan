@@ -10,13 +10,11 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Columns
 {
     public class Speed : IColumn
     {
-        public double FileSizeMB;
-        public BenchmarkKind Kind;
+        public Func<Summary, BenchmarkCase, long> GetFileSizeBytes;
 
-        public Speed(BenchmarkKind benchmarkKind, long fileSize)
+        public Speed(Func<Summary, BenchmarkCase, long> getFileSize)
         {
-            FileSizeMB = BenchmarkUtils.BytesToMB(fileSize);
-            Kind = benchmarkKind;
+            GetFileSizeBytes = getFileSize;
         }
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase)
@@ -24,19 +22,10 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Columns
             var ourReport = summary.Reports.First(x => x.BenchmarkCase.Equals(benchmarkCase));
             var mean = ourReport.ResultStatistics.Mean;
             var meanSeconds = mean / 1000_000_000F; // ns to seconds
+            var sizeMb = BenchmarkUtils.BytesToMB(GetFileSizeBytes(summary, benchmarkCase));
 
-            // Suppport Multithreaded benchmark.
-            if (Kind == BenchmarkKind.Multithreaded || Kind == BenchmarkKind.MultithreadedRandom)
-            {
-                var numItems = benchmarkCase.Parameters[nameof(LargeArrayMtBenchmarkBase.NumItems)];
-                if (Kind == BenchmarkKind.Multithreaded) 
-                    return $"{(double)FileSizeMB * (int)numItems / meanSeconds}";
-
-                return $"{(double)RandomMt.NumItemsToTotalSizeMB[(int)numItems] / meanSeconds}";
-            }
-            
-            // Convert to seconds.
-            return $"{(double)FileSizeMB / meanSeconds}";
+            // Convert to MB/s.
+            return $"{(sizeMb / meanSeconds):#####.00}";
         }
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style) => GetValue(summary, benchmarkCase);

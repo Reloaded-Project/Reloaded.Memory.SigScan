@@ -6,7 +6,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.LargeArray
 {
     public class WorstCaseScenario
     {
-        public static IConfig Config() => new SigscanConfig(BenchmarkKind.Default, _dataFromFile.Length);
+        public static IConfig GetConfig() => new SigscanConfig((bc, bCase) => _dataFromFile.Length);
 
         private static byte[] _dataFromFile     = File.ReadAllBytes(Constants.WorstCaseFile);
         private static Scanner _scannerFromFile = new Scanner(_dataFromFile);
