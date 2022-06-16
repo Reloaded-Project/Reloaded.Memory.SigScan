@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reloaded.Memory.Sigscan.Ben
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reloaded.Memory.SigScan.Tests.x86", "Reloaded.Memory.SigScan.Tests.x86\Reloaded.Memory.SigScan.Tests.x86.csproj", "{106A677C-D085-4584-AB7D-D7B3C476F0A7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{1FFA23CE-672A-4DCE-94D5-8F1C5A47D540}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
