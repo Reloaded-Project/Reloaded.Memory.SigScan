@@ -15,11 +15,11 @@ name: Build and Publish Reloaded Mod
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master, 3.0 ]
     tags:
       - '*'
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 env: 
