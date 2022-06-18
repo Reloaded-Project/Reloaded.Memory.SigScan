@@ -151,6 +151,7 @@ public unsafe partial class Scanner : IScanner, IDisposable
         var results = new PatternScanResult[patterns.Count];
         if (patterns.Count == 0)
             return results;
+        
         var completedPatternCache = new ConcurrentDictionary<string, PatternScanResult>(StringComparer.OrdinalIgnoreCase);
 
         if (loadBalance)
