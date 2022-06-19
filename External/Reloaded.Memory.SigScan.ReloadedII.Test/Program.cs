@@ -1,6 +1,8 @@
 ﻿using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 using System;
+using System.Diagnostics;
+using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 
@@ -31,7 +33,9 @@ namespace Reloaded.Memory.SigScan.ReloadedII.Test
 
             // Get Controller
             _modLoader.GetController<IStartupScanner>().TryGetTarget(out var startupScanner);
+            _modLoader.GetController<IScannerFactory>().TryGetTarget(out var scannerFactory);
             startupScanner.AddMainModuleScan("C3", OnMainModuleScan);
+            startupScanner.AddArbitraryScan(scannerFactory.CreateScanner(Process.GetCurrentProcess()), "C3", OnMainModuleScan);
         }
 
         private void OnMainModuleScan(PatternScanResult obj)

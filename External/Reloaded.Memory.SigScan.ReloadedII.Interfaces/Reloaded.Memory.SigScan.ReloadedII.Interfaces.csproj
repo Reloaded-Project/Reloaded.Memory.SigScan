@@ -6,7 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <PackageId>Reloaded.Memory.SigScan.ReloadedII.Interfaces</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>Sewer56</Authors>
     <Description>Interface definitions for Reloaded.Memory.Sigscan Shared Library.</Description>
     <Copyright>LGPL V3</Copyright>
@@ -17,6 +17,7 @@
     <PackageIconUrl>https://avatars1.githubusercontent.com/u/45473408</PackageIconUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

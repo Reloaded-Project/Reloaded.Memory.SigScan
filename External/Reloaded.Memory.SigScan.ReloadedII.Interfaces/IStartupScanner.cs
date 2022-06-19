@@ -1,4 +1,5 @@
 ﻿using System;
+using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
 
 namespace Reloaded.Memory.SigScan.ReloadedII.Interfaces;
@@ -22,4 +23,13 @@ public interface IStartupScanner
     /// <param name="pattern">The pattern to signature scan for.</param>
     /// <param name="action">The function to execute with the result of the function.</param>
     public void AddMainModuleScan(string pattern, Action<PatternScanResult> action);
+
+    /// <summary>
+    /// Adds a pattern to be scanned in parallel with other arbitrary patterns.  
+    /// Note: This pattern is not scanned in parallel in a separate queue from main module scans.  
+    /// </summary>
+    /// <param name="scanner">Scanner preconfigured to scan a specific memory region.</param>
+    /// <param name="pattern">The pattern to scan using the scanner.</param>
+    /// <param name="action">The function to execute with the result of the function.</param>
+    public void AddArbitraryScan(IScanner scanner, string pattern, Action<PatternScanResult> action);
 }
