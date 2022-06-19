@@ -45,19 +45,6 @@ public ref struct CompiledScanPattern
         string[] entries = stringPattern.Split(' ');
         Length = entries.Length;
 
-        // Ensure the array allocation size is sufficient such that dereferencing long at any index
-        // could not possibly reference unallocated memory.
-        byte[] bytesToCompare = new byte[Math.Max(entries.Length, sizeof(nint) * 2)];;
-        int arrayIndex = 0;
-        foreach (var segment in entries)
-        {
-            if (!segment.Equals(MaskIgnore, StringComparison.Ordinal))
-            {
-                bytesToCompare[arrayIndex] = byte.Parse(segment, NumberStyles.HexNumber);
-                arrayIndex += 1;
-            }
-        }
-
         // Get bytes to make instructions with.
         Instructions  = new GenericInstruction[Length];
         NumberOfInstructions = 0;

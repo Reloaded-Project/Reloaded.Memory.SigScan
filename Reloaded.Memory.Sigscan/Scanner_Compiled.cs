@@ -8,7 +8,7 @@ public unsafe partial class Scanner
 {
     /// <summary>
     /// Attempts to find a given pattern inside the memory region this class was created with.
-    /// This method generally works better when the expected offset is bigger than 4096.
+    /// This method generally works better than a simple byte search when the expected offset is bigger than 4096.
     /// </summary>
     /// <param name="data">Address of the data to be scanned.</param>
     /// <param name="dataLength">Length of the data to be scanned.</param>
@@ -24,10 +24,13 @@ public unsafe partial class Scanner
 #endif
     public static PatternScanResult FindPatternCompiled(byte* data, int dataLength, CompiledScanPattern pattern)
     {
+        const int numberOfUnrolls = 8;
+
         int numberOfInstructions = pattern.NumberOfInstructions;
-        byte* dataBasePointer = data;
-        byte* currentDataPointer;
-        int lastIndex = dataLength - Math.Max(pattern.Length, sizeof(nint));
+        int lastIndex = dataLength - Math.Max(pattern.Length, sizeof(nint)) - numberOfUnrolls;
+
+        if (lastIndex < 0)
+            return FindPatternSimple(data, dataLength, new SimplePatternScanData(pattern.Pattern));
 
         // Note: All of this has to be manually inlined otherwise performance suffers, this is a bit ugly though :/
         fixed (GenericInstruction* instructions = pattern.Instructions)
@@ -46,35 +49,70 @@ public unsafe partial class Scanner
                 This ends up being considerably faster, which is important in a scenario where we are entirely CPU bound.
             */
 
-            int x = 0;
-            while (x < lastIndex)
+            var dataCurPointer = data;
+            var dataMaxPointer = data + lastIndex;
+            while (dataCurPointer < dataMaxPointer)
             {
-                currentDataPointer = dataBasePointer + x;
-                var compareValue = *(nuint*)currentDataPointer & firstInstruction.Mask;
-                if (compareValue != firstInstruction.LongValue)
-                    goto singleInstructionLoopExit;
-
-                if (numberOfInstructions <= 1)
-                    return new PatternScanResult(x);
-
-                /* When NumberOfInstructions > 1 */
-                currentDataPointer += sizeof(nuint);
-                int y = 1;
-                do
+                if ((*(nuint*)dataCurPointer & firstInstruction.Mask) != firstInstruction.LongValue)
                 {
-                    compareValue = *(nuint*)currentDataPointer & instructions[y].Mask;
-                    if (compareValue != instructions[y].LongValue)
-                        goto singleInstructionLoopExit;
-
-                    currentDataPointer += sizeof(nuint);
-                    y++;
+                    if ((*(nuint*)(dataCurPointer + 1) & firstInstruction.Mask) != firstInstruction.LongValue)
+                    {
+                        if ((*(nuint*)(dataCurPointer + 2) & firstInstruction.Mask) != firstInstruction.LongValue)
+                        {
+                            if ((*(nuint*)(dataCurPointer + 3) & firstInstruction.Mask) != firstInstruction.LongValue)
+                            {
+                                if ((*(nuint*)(dataCurPointer + 4) & firstInstruction.Mask) != firstInstruction.LongValue)
+                                {
+                                    if ((*(nuint*)(dataCurPointer + 5) & firstInstruction.Mask) != firstInstruction.LongValue)
+                                    {
+                                        if ((*(nuint*)(dataCurPointer + 6) & firstInstruction.Mask) != firstInstruction.LongValue)
+                                        {
+                                            if ((*(nuint*)(dataCurPointer + 7) & firstInstruction.Mask) != firstInstruction.LongValue)
+                                            {
+                                                dataCurPointer += 8;
+                                                goto end;
+                                            }
+                                            else
+                                            {
+                                                dataCurPointer += 7;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            dataCurPointer += 6;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        dataCurPointer += 5;
+                                    }
+                                }
+                                else
+                                {
+                                    dataCurPointer += 4;
+                                }
+                            }
+                            else
+                            {
+                                dataCurPointer += 3;
+                            }
+                        }
+                        else
+                        {
+                            dataCurPointer += 2;
+                        }
+                    }
+                    else
+                    {
+                        dataCurPointer += 1;
+                    }
                 }
-                while (y < numberOfInstructions);
 
-                return new PatternScanResult(x);
-
-                singleInstructionLoopExit:;
-                x++;
+                if (numberOfInstructions <= 1 || TestRemainingMasks(numberOfInstructions, dataCurPointer, instructions))
+                    return new PatternScanResult((int)(dataCurPointer - data));
+                
+                dataCurPointer += 1;
+                end:;
             }
 
             // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
@@ -83,5 +121,29 @@ public unsafe partial class Scanner
             // PS. This function is a prime example why the `goto` statement is frowned upon.
             // I have to use it here for performance though.
         }
+    }
+    
+#if NET5_0_OR_GREATER
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
+    private static bool TestRemainingMasks(int numberOfInstructions, byte* currentDataPointer, GenericInstruction* instructions)
+    {
+        /* When NumberOfInstructions > 1 */
+        currentDataPointer += sizeof(nuint);
+
+        int y = 1;
+        do
+        {
+            var compareValue = *(nuint*)currentDataPointer & instructions[y].Mask;
+            if (compareValue != instructions[y].LongValue)
+                return false;
+
+            currentDataPointer += sizeof(nuint);
+            y++;
+        } 
+        while (y < numberOfInstructions);
+
+        return true;
     }
 }
