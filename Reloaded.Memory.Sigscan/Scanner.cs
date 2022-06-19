@@ -123,6 +123,9 @@ public unsafe partial class Scanner : IScanner, IDisposable
     public PatternScanResult[] FindPatterns(IReadOnlyList<string> patterns, bool loadBalance = false)
     {
         var results = new PatternScanResult[patterns.Count];
+        if (patterns.Count == 0)
+            return results;
+
         if (loadBalance)
         {
             Parallel.ForEach(Partitioner.Create(patterns.ToArray(), true), (item, _, index) =>
@@ -146,6 +149,9 @@ public unsafe partial class Scanner : IScanner, IDisposable
     public PatternScanResult[] FindPatternsCached(IReadOnlyList<string> patterns, bool loadBalance = false)
     {
         var results = new PatternScanResult[patterns.Count];
+        if (patterns.Count == 0)
+            return results;
+
         var completedPatternCache = new ConcurrentDictionary<string, PatternScanResult>(StringComparer.OrdinalIgnoreCase);
 
         if (loadBalance)
