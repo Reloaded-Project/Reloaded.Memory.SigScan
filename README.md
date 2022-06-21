@@ -92,12 +92,12 @@ The provided "Speed" column is an effective measure of pattern matching speed in
 Scanning a small data (3MiB) with known signature at end of data.  
 
 ```
-|   Method |       Mean |    Error |   StdDev | Ratio | Speed (MB/s) |
-|--------- |-----------:|---------:|---------:|------:|------------- |
-|      Avx |   230.8 us |  2.72 us |  2.41 us |  0.14 |     13631.33 |
-|      Sse |   288.6 us |  2.45 us |  2.05 us |  0.18 |     10900.74 |
-| Compiled | 1,596.8 us | 14.54 us | 13.60 us |  1.00 |      1970.06 |
-|   Simple | 3,087.1 us | 14.83 us | 13.87 us |  1.93 |      1019.00 |
+|   Method |       Mean |    Error |   StdDev | Ratio | RatioSD | Speed (MB/s) |
+|--------- |-----------:|---------:|---------:|------:|--------:|------------- |
+|      Avx |   232.4 us |  2.76 us |  2.58 us |  0.32 |    0.00 |     13535.33 |
+|      Sse |   284.7 us |  2.17 us |  2.03 us |  0.40 |    0.00 |     11049.62 |
+| Compiled |   715.7 us |  5.68 us |  5.03 us |  1.00 |    0.00 |      4395.52 |
+|   Simple | 3,098.3 us | 36.51 us | 34.15 us |  4.33 |    0.05 |      1015.31 |
 ```
 
 ### Small Data
