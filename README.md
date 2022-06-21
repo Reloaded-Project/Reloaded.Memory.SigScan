@@ -125,7 +125,7 @@ Scanning a random big data (200MiB) with random pre-selected 12 byte signatures.
 ```
 |             Method | NumItems | Speed (MB/s) |
 |------------------- |--------- |------------- |
-| Random_ST_Compiled |        1 |      5339.74 |
+| Random_ST_Compiled |        1 |     10308.65 |
 |          Random_ST |        1 |     30025.36 |
 |     Random_MT_NoLB |        4 |     44669.77 |
 |       Random_MT_LB |        4 |     44572.28 |
