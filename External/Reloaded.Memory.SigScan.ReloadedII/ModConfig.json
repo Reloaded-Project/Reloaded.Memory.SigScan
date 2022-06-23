@@ -2,7 +2,7 @@
   "ModId": "Reloaded.Memory.SigScan.ReloadedII",
   "ModName": "Library: Reloaded.Memory.Sigscan for Reloaded II",
   "ModAuthor": "Sewer56",
-  "ModVersion": "1.1.0",
+  "ModVersion": "1.1.1",
   "ModDescription": "Shared implementation of Reloaded.Memory.Sigscan",
   "ModDll": "Reloaded.Memory.SigScan.ReloadedII.dll",
   "ModIcon": "Preview.png",
@@ -12,9 +12,22 @@
   "ModNativeDll64": "",
   "IsLibrary": true,
   "ReleaseMetadataFileName": "Reloaded.Memory.SigScan.ReloadedII.ReleaseMetadata.json",
-  "PluginData": {},
+  "PluginData": {
+    "NuGet": {
+      "AllowUpdateFromAnyRepository": false,
+      "DefaultRepositoryUrls": [
+        "http://packages.sewer56.moe:5000/v3/index.json"
+      ]
+    },
+    "GitHubRelease": {
+      "UserName": "Reloaded.Memory.SigScan",
+      "RepositoryName": "Reloaded-Project",
+      "UseReleaseTag": false,
+      "AssetFileName": "Mod.zip"
+    }
+  },
   "IsUniversalMod": false,
-  "ModDependencies": [ ],
+  "ModDependencies": [],
   "OptionalDependencies": [],
   "SupportedAppId": []
 }
