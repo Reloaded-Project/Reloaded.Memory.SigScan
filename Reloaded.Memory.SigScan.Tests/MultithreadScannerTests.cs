@@ -20,4 +20,19 @@ public class MultithreadScannerTests : ScannerTestBase
         var results = scanner.FindPatternsCached(multiplePatterns);
         Assert.Equal(results[0], results[2]);
     }
+
+    [Fact]
+    public void NonCached_DoesNotRemoveDuplicates()
+    {
+        var scanner = new Scanner(_data);
+        var multiplePatterns = new List<string>()
+        {
+            "7A BB",
+            "9F AB",
+            "7A BB"
+        };
+
+        var results = scanner.FindPatterns(multiplePatterns);
+        Assert.Equal(results[0], results[2]);
+    }
 }
