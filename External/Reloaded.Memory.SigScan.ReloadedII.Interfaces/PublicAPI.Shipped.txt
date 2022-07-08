@@ -1,1 +1,3 @@
-﻿
+﻿Reloaded.Memory.SigScan.ReloadedII.Interfaces.IStartupScanner
+Reloaded.Memory.SigScan.ReloadedII.Interfaces.IStartupScanner.AddArbitraryScan(Reloaded.Memory.Sigscan.Definitions.IScanner scanner, string pattern, System.Action<Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult> action) -> void
+Reloaded.Memory.SigScan.ReloadedII.Interfaces.IStartupScanner.AddMainModuleScan(string pattern, System.Action<Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult> action) -> void

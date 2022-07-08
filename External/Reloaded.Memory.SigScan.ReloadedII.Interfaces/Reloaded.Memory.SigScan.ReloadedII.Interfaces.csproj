@@ -6,7 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <PackageId>Reloaded.Memory.SigScan.ReloadedII.Interfaces</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Sewer56</Authors>
     <Description>Interface definitions for Reloaded.Memory.Sigscan Shared Library.</Description>
     <Copyright>LGPL V3</Copyright>

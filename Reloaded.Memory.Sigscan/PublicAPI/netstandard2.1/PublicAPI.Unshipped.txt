@@ -1,1 +1,1 @@
-﻿Reloaded.Memory.Sigscan.Scanner.FindPattern(string pattern, int offset) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+﻿
