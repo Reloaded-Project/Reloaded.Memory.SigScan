@@ -124,13 +124,13 @@ public unsafe partial class Scanner : IScanner, IDisposable
     {
 #if SIMD_INTRINSICS
         if (Avx2.IsSupported)
-            return FindPatternAvx2(_dataPtr + offset, _dataLength - offset, pattern);
+            return FindPatternAvx2(_dataPtr + offset, _dataLength - offset, pattern).AddOffset(offset);
 
         if (Sse2.IsSupported)
-            return FindPatternSse2(_dataPtr + offset, _dataLength - offset, pattern);
+            return FindPatternSse2(_dataPtr + offset, _dataLength - offset, pattern).AddOffset(offset);
 #endif
 
-        return FindPatternCompiled(_dataPtr + offset, _dataLength - offset, pattern);
+        return FindPatternCompiled(_dataPtr + offset, _dataLength - offset, pattern).AddOffset(offset);
     }
 
     /// <inheritdoc/>

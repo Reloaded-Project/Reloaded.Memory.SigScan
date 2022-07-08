@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Reloaded.Memory.Sigscan;
+using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Xunit;
 
 namespace Reloaded.Memory.SigScan.Tests
@@ -147,6 +148,32 @@ namespace Reloaded.Memory.SigScan.Tests
             Assert.Equal(resultCompiled, resultSimple);
             Assert.False(resultCompiled.Found);
             Assert.Equal(-1, resultCompiled.Offset);
+        }
+
+        [Fact]
+        public void FindAtOffset()
+        {
+            var scanner = new Scanner(_data);
+            var expectedOffsets = new int[]
+            {
+                2,
+                254
+            };
+
+            var numFound = 0;
+            var lastOffset = -1;
+
+            while (true)
+            {
+
+                lastOffset = scanner.FindPattern("7A", lastOffset + 1).Offset;
+                if (lastOffset == -1)
+                    break;
+
+                Assert.Equal(expectedOffsets[numFound++], lastOffset);
+            }
+
+            Assert.Equal(2, numFound);
         }
     }
 }
