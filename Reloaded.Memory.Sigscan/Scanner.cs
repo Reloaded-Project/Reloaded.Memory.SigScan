@@ -120,6 +120,20 @@ public unsafe partial class Scanner : IScanner, IDisposable
     }
 
     /// <inheritdoc/>
+    public PatternScanResult FindPattern(string pattern, int offset)
+    {
+#if SIMD_INTRINSICS
+        if (Avx2.IsSupported)
+            return FindPatternAvx2(_dataPtr + offset, _dataLength - offset, pattern);
+
+        if (Sse2.IsSupported)
+            return FindPatternSse2(_dataPtr + offset, _dataLength - offset, pattern);
+#endif
+
+        return FindPatternCompiled(_dataPtr + offset, _dataLength - offset, pattern);
+    }
+
+    /// <inheritdoc/>
     public PatternScanResult[] FindPatterns(IReadOnlyList<string> patterns, bool loadBalance = false)
     {
         var results = new PatternScanResult[patterns.Count];

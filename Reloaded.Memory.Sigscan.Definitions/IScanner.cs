@@ -22,6 +22,19 @@ public interface IScanner : IDisposable
     PatternScanResult FindPattern(string pattern);
 
     /// <summary>
+    /// Attempts to find a given pattern inside the memory region this class was created with.
+    /// The method used depends on the available hardware; will use vectorized instructions if available.
+    /// </summary>
+    /// <param name="pattern">
+    ///     The pattern to look for inside the given region.
+    ///     Example: "11 22 33 ?? 55".
+    ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
+    /// </param>
+    /// <param name="offset">Offset (in bytes) from which the pattern scan should begin from.</param>
+    /// <returns>A result indicating an offset (if found) of the pattern.</returns>
+    public PatternScanResult FindPattern(string pattern, int offset);
+
+    /// <summary>
     /// Finds multiple patterns within a given scan range, in multithreaded fashion.
     /// </summary>
     /// <param name="patterns">The patterns to scan.</param>
