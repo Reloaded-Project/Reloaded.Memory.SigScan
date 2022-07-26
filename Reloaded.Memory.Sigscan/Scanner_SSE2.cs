@@ -70,18 +70,16 @@ public unsafe partial class Scanner
 
         int simdJump = SseRegisterLength - 1;
         int searchLength = dataLength - Math.Max(patternData.Bytes.Length, SseRegisterLength);
-        int position = 0;
-        for (; position < searchLength; position++, dataPtr += 1)
+        var dataMaxPtr = dataPtr + searchLength;
+        for (; dataPtr < dataMaxPtr; dataPtr++)
         {
             // Problem: If pattern starts with unknown, will never match.
-
             var rhs = Sse2.LoadVector128(dataPtr);
             var equal = Sse2.CompareEqual(pFirstVec, rhs);
             int findFirstByte = Sse2.MoveMask(equal);
 
             if (findFirstByte == 0)
             {
-                position += simdJump;
                 dataPtr += simdJump;
                 continue;
             }
@@ -89,7 +87,6 @@ public unsafe partial class Scanner
             // Shift up until first byte found.
             int offset = BitOperations.TrailingZeroCount((uint)findFirstByte);
             offset -= leadingIgnoreCount;
-            position += offset;
             dataPtr += offset;
 
             int iMatchTableIndex = 0;
@@ -117,12 +114,13 @@ public unsafe partial class Scanner
                 }
             }
 
-            return new PatternScanResult(position);
+            return new PatternScanResult((int)(dataPtr - data));
 
             notfound:;
         }
 
         // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
+        var position = (int)(dataPtr - data);
         return FindPatternSimple(data + position, dataLength - position, pattern).AddOffset(position);
     }
 
