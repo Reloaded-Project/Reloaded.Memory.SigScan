@@ -92,7 +92,6 @@ public unsafe partial class Scanner
 
             // Match with remaining vectors.
             int iMatchTableIndex = 0;
-            bool found = true;
             for (int i = 0; i < vectorLength; i++)
             {
                 int registerByteOffset = i * AvxRegisterLength;
@@ -108,23 +107,18 @@ public unsafe partial class Scanner
                     if (matchIndex < AvxRegisterLength)
                     {
                         if (((compareResult >> matchIndex) & 1) != 1)
-                        {
-                            found = false;
-                            break;
-                        }
+                            goto notfound;
 
                         continue;
                     }
 
                     break;
                 }
-
-                if (!found)
-                    break;
             }
 
-            if (found)
-                return new PatternScanResult(position);
+            return new PatternScanResult(position);
+
+            notfound:;
         }
 
         // Check last few bytes in cases pattern was not found and long overflows into possibly unallocated memory.
