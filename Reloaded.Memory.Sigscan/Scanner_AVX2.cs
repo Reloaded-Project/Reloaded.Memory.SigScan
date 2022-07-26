@@ -105,13 +105,17 @@ public unsafe partial class Scanner
                 for (; iMatchTableIndex < matchTableLength; iMatchTableIndex++)
                 {
                     int matchIndex = matchTablePtr[iMatchTableIndex] - registerByteOffset;
-                    if (matchIndex >= AvxRegisterLength)
-                        break;
+                    if (matchIndex < AvxRegisterLength)
+                    {
+                        if (((compareResult >> matchIndex) & 1) != 1)
+                        {
+                            found = false;
+                            break;
+                        }
 
-                    if (((compareResult >> matchIndex) & 1) == 1)
                         continue;
+                    }
 
-                    found = false;
                     break;
                 }
 
