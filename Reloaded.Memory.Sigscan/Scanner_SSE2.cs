@@ -56,6 +56,7 @@ public unsafe partial class Scanner
             return FindPatternSimple(data, dataLength, pattern);
 
         var matchTable       = BuildMatchIndexes(patternData);
+        var matchTablePtr    = (short*)Unsafe.AsPointer(ref matchTable.GetPinnableReference());
         var patternVectors   = PadPatternToVector128Sse(patternData);
 
         int matchTableLength = matchTable.Length;
@@ -95,7 +96,8 @@ public unsafe partial class Scanner
             bool found = true;
             for (int i = 0; i < vectorLength; i++)
             {
-                var nextByte = dataPtr + (1 + (i * SseRegisterLength));
+                int registerByteOffset = i * SseRegisterLength;
+                var nextByte = dataPtr + registerByteOffset + 1;
                 var rhsNo2   = Sse2.LoadVector128(nextByte);
                 var curPatternVector = Unsafe.Add(ref pVec, i);
 
@@ -103,11 +105,7 @@ public unsafe partial class Scanner
 
                 for (; iMatchTableIndex < matchTableLength; iMatchTableIndex++)
                 {
-                    int matchIndex = matchTable[iMatchTableIndex];
-
-                    if (i > 0) 
-                        matchIndex -= i * SseRegisterLength;
-
+                    int matchIndex = matchTablePtr[iMatchTableIndex] - registerByteOffset;
                     if (matchIndex >= SseRegisterLength)
                         break;
 
@@ -139,7 +137,7 @@ public unsafe partial class Scanner
     [SkipLocalsInit]
 #endif
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    private static ReadOnlySpan<ushort> BuildMatchIndexes(in SimdPatternScanData scanPattern)
+    private static Span<ushort> BuildMatchIndexes(in SimdPatternScanData scanPattern)
     {
         // ORIGINAL CODE
         int maskLength  = scanPattern.Mask.Length;
@@ -154,9 +152,8 @@ public unsafe partial class Scanner
             fullMatchTable[matchCount] = (ushort)(x - 1);
             matchCount++;
         }
-
-        var matchTable = new ReadOnlySpan<ushort>(fullMatchTable).Slice(0, matchCount);
-        return matchTable;
+        
+        return new Span<ushort>(fullMatchTable).Slice(0, matchCount);
     }
 
     /// <summary>

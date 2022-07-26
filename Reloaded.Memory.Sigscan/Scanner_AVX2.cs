@@ -55,6 +55,7 @@ public unsafe partial class Scanner
             return FindPatternSimple(data, dataLength, pattern);
 
         var matchTable       = BuildMatchIndexes(patternData);
+        var matchTablePtr    = (short*)Unsafe.AsPointer(ref matchTable.GetPinnableReference());
         var patternVectors   = PadPatternToVector256Avx(patternData);
 
         int matchTableLength = matchTable.Length;
@@ -94,7 +95,8 @@ public unsafe partial class Scanner
             bool found = true;
             for (int i = 0; i < vectorLength; i++)
             {
-                var nextByte = dataPtr + (1 + (i * AvxRegisterLength));
+                int registerByteOffset = i * AvxRegisterLength;
+                var nextByte = dataPtr + registerByteOffset + 1;
                 var rhsNo2   = Avx.LoadVector256(nextByte);
                 var curPatternVector = Unsafe.Add(ref pVec, i);
 
@@ -102,11 +104,7 @@ public unsafe partial class Scanner
 
                 for (; iMatchTableIndex < matchTableLength; iMatchTableIndex++)
                 {
-                    int matchIndex = matchTable[iMatchTableIndex];
-
-                    if (i > 0) 
-                        matchIndex -= i * AvxRegisterLength;
-
+                    int matchIndex = matchTablePtr[iMatchTableIndex] - registerByteOffset;
                     if (matchIndex >= AvxRegisterLength)
                         break;
 
