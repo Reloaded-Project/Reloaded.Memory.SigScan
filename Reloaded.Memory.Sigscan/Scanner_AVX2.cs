@@ -49,32 +49,31 @@ public unsafe partial class Scanner
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static PatternScanResult FindPatternAvx2(byte* data, int dataLength, string pattern)
     {
-        var dataPtr = data;
         var patternData = new SimdPatternScanData(pattern);
         if (patternData.Bytes.Length == 1) // For single byte search, fall back.
             return FindPatternSimple(data, dataLength, pattern);
 
         var matchTable       = BuildMatchIndexes(patternData);
-        var matchTablePtr    = (short*)Unsafe.AsPointer(ref matchTable.GetPinnableReference());
         var patternVectors   = PadPatternToVector256Avx(patternData);
-
         int matchTableLength = matchTable.Length;
-        int leadingIgnoreCount = patternData.LeadingIgnoreCount;
 
-        ref var pVec     = ref patternVectors[0];
-        int vectorLength = patternVectors.Length;
-
-        var firstByteVec  = Vector256.Create(patternData.Bytes[leadingIgnoreCount]);
-        ref var pFirstVec = ref firstByteVec;
-
-        int simdJump = AvxRegisterLength - 1;
+        var firstByteVec     = Vector256.Create(patternData.Bytes[patternData.LeadingIgnoreCount]);
         int searchLength = dataLength - Math.Max(patternData.Bytes.Length, AvxRegisterLength);
+
+        int leadingIgnoreCount = patternData.LeadingIgnoreCount;
+        ref var pVec = ref patternVectors[0];
+        var matchTablePtr = (short*)Unsafe.AsPointer(ref matchTable.GetPinnableReference());
+
+        int vectorLength = patternVectors.Length;
+        int simdJump = AvxRegisterLength - 1;
+        ref var pFirstByteVec = ref firstByteVec;
+        var dataPtr    = data;
         var dataMaxPtr = dataPtr + searchLength;
         for (; dataPtr < dataMaxPtr; dataPtr++)
         {
             // Problem: If pattern starts with unknown, will never match.
             var rhs = Avx.LoadVector256(dataPtr);
-            var equal = Avx2.CompareEqual(pFirstVec, rhs);
+            var equal = Avx2.CompareEqual(pFirstByteVec, rhs);
             int findFirstByte = Avx2.MoveMask(equal);
             
             if (findFirstByte == 0)
@@ -84,9 +83,7 @@ public unsafe partial class Scanner
             }
 
             // Shift up until first byte found.
-            int offset = BitOperations.TrailingZeroCount((uint)findFirstByte);
-            offset -= leadingIgnoreCount;
-            dataPtr += offset;
+            dataPtr += (BitOperations.TrailingZeroCount((uint)findFirstByte) - leadingIgnoreCount);
 
             // Match with remaining vectors.
             int iMatchTableIndex = 0;

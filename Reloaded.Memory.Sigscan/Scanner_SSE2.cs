@@ -50,32 +50,31 @@ public unsafe partial class Scanner
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static PatternScanResult FindPatternSse2(byte* data, int dataLength, string pattern)
     {
-        var dataPtr = data;
         var patternData = new SimdPatternScanData(pattern);
         if (patternData.Bytes.Length == 1) // For single byte search, fall back.
             return FindPatternSimple(data, dataLength, pattern);
 
         var matchTable       = BuildMatchIndexes(patternData);
-        var matchTablePtr    = (short*)Unsafe.AsPointer(ref matchTable.GetPinnableReference());
         var patternVectors   = PadPatternToVector128Sse(patternData);
-
         int matchTableLength = matchTable.Length;
-        int leadingIgnoreCount = patternData.LeadingIgnoreCount;
 
-        ref var pVec     = ref patternVectors[0];
-        int vectorLength = patternVectors.Length;
-
-        var firstByteVec  = Vector128.Create(patternData.Bytes[leadingIgnoreCount]);
-        ref var pFirstVec = ref firstByteVec;
-
-        int simdJump = SseRegisterLength - 1;
+        var firstByteVec  = Vector128.Create(patternData.Bytes[patternData.LeadingIgnoreCount]);
         int searchLength = dataLength - Math.Max(patternData.Bytes.Length, SseRegisterLength);
+
+        int leadingIgnoreCount = patternData.LeadingIgnoreCount;
+        ref var pVec = ref patternVectors[0];
+        var matchTablePtr = (short*)Unsafe.AsPointer(ref matchTable.GetPinnableReference());
+
+        int vectorLength = patternVectors.Length;
+        int simdJump = SseRegisterLength - 1;
+        ref var pFirstByteVec = ref firstByteVec;
+        var dataPtr    = data;
         var dataMaxPtr = dataPtr + searchLength;
         for (; dataPtr < dataMaxPtr; dataPtr++)
         {
             // Problem: If pattern starts with unknown, will never match.
             var rhs = Sse2.LoadVector128(dataPtr);
-            var equal = Sse2.CompareEqual(pFirstVec, rhs);
+            var equal = Sse2.CompareEqual(pFirstByteVec, rhs);
             int findFirstByte = Sse2.MoveMask(equal);
 
             if (findFirstByte == 0)
@@ -85,9 +84,7 @@ public unsafe partial class Scanner
             }
 
             // Shift up until first byte found.
-            int offset = BitOperations.TrailingZeroCount((uint)findFirstByte);
-            offset -= leadingIgnoreCount;
-            dataPtr += offset;
+            dataPtr += (BitOperations.TrailingZeroCount((uint)findFirstByte) - leadingIgnoreCount);
 
             int iMatchTableIndex = 0;
             for (int i = 0; i < vectorLength; i++)
