@@ -21,7 +21,7 @@
 
     <LangVersion>preview</LangVersion>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>3.1.1</Version>
+    <Version>3.1.2</Version>
     <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
@@ -35,7 +35,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Reloaded.Memory" Version="4.1.4" />
+    <PackageReference Include="Reloaded.Memory" Version="8.0.1" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" Version="4.5.3" />
   </ItemGroup>
 
