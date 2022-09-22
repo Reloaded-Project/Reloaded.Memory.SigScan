@@ -18,7 +18,7 @@ namespace Reloaded.Memory.Sigscan;
 /// </summary>
 public unsafe partial class Scanner : IScanner, IDisposable
 {
-    private static Process _currentProcess = Process.GetCurrentProcess();
+    private static int _currentProcessId = Process.GetCurrentProcess().Id;
 
     private bool _disposedValue;
     private GCHandle? _gcHandle;
@@ -52,7 +52,7 @@ public unsafe partial class Scanner : IScanner, IDisposable
     public Scanner(Process process, ProcessModule module)
     {
         // Optimization
-        if (process.Id == _currentProcess.Id)
+        if (process.Id == _currentProcessId)
         {
             _dataPtr    = (byte*) module.BaseAddress;
             _dataLength = module.ModuleMemorySize;
