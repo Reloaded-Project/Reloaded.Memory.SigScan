@@ -80,7 +80,7 @@ jobs:
         }
         
     - name: Build
-      run: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish.ps1 -ChangelogPath "$env:PUBLISH_CHANGELOG_PATH"
+      run: ./External/Reloaded.Memory.SigScan.ReloadedII/Publish.ps1 -ChangelogPath "$env:PUBLISH_CHANGELOG_PATH" -ReadmePath "./External/Reloaded.Memory.SigScan.ReloadedII/README-RII.md"
       
     - name: Upload GitHub Release Artifact
       uses: actions/upload-artifact@v2.2.4

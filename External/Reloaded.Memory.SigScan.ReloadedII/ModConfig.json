@@ -2,7 +2,7 @@
   "ModId": "Reloaded.Memory.SigScan.ReloadedII",
   "ModName": "Library: Reloaded.Memory.Sigscan for Reloaded II",
   "ModAuthor": "Sewer56",
-  "ModVersion": "1.2.3",
+  "ModVersion": "1.2.4",
   "ModDescription": "Shared implementation of Reloaded.Memory.Sigscan",
   "ModDll": "Reloaded.Memory.SigScan.ReloadedII.dll",
   "ModIcon": "Preview.png",
@@ -29,5 +29,6 @@
   "IsUniversalMod": false,
   "ModDependencies": [],
   "OptionalDependencies": [],
-  "SupportedAppId": []
+  "SupportedAppId": [],
+  "ProjectUrl": "https://github.com/Reloaded-Project/Reloaded.Memory.SigScan"
 }
