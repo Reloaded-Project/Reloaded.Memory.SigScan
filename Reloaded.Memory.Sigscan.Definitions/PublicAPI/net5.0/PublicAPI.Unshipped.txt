@@ -1,0 +1,2 @@
+﻿Reloaded.Memory.Sigscan.Definitions.IScanner.FindPattern(string pattern, int offset) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult
+Reloaded.Memory.Sigscan.Definitions.IScanner.FindPatternsCached(System.Collections.Generic.IReadOnlyList<string> patterns, bool loadBalance = false) -> Reloaded.Memory.Sigscan.Definitions.Structs.PatternScanResult[]

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <DefineConstants Condition="('$(TargetFramework)' == 'netcoreapp3.1')">$(DefineConstants);SIMD_INTRINSICS</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

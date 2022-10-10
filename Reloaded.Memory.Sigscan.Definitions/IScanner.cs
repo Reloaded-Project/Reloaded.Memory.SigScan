@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
 
+#if NET5_0_OR_GREATER
+    [module: SkipLocalsInit]
+#endif
 namespace Reloaded.Memory.Sigscan.Definitions;
 
 /// <summary>
