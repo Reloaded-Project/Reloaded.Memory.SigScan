@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ReloadedLinkRoots Include="Reloaded.Memory.SigScan.ReloadedII" />
+    <ReloadedLinkRoots Include="Reloaded.Memory.Sigscan.Definitions" />
     <!-- Add assemblies to be trimmed. You might need to add their dependencies too!  -->
     <ReloadedLinkAssemblies Include="Reloaded.Memory.Sigscan" />
     <ReloadedLinkAssemblies Include="Reloaded.Memory" /> 
