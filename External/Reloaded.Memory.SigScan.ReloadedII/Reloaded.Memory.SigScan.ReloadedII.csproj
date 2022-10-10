@@ -26,10 +26,12 @@
 
   <ItemGroup>
     <None Remove="ModConfig.json" />
-    <None Remove="Preview.png" />
     <None Remove="Publish.ps1" />
     <None Remove="BuildLinked.ps1" />
     <None Remove="Robust.Trimming.targets" />
+    <None Update="Preview.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
