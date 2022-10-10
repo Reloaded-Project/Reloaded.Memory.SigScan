@@ -45,7 +45,7 @@
     <!-- Original Target: PrepareForILLink -->
     <!-- Set IsTrimmable for any assemblies that already have customized TrimMode. -->
     <ItemGroup>
-      <ManagedAssemblyToLink>
+      <ManagedAssemblyToLink Condition=" '%(ManagedAssemblyToLink.TrimMode)' != '' ">
         <IsTrimmable>true</IsTrimmable>
       </ManagedAssemblyToLink>
     </ItemGroup>
@@ -80,7 +80,13 @@
 
     <!-- In .NET6+, set the action explicitly for any with IsTrimmable MSBuild metadata -->
     <ItemGroup>
+      <ManagedAssemblyToLink Condition=" '%(ManagedAssemblyToLink.IsTrimmable)' == 'false' And '%(ManagedAssemblyToLink.TrimMode)' == '' ">
+        <TrimMode>$(TrimmerDefaultAction)</TrimMode>
+      </ManagedAssemblyToLink>
 
+      <ManagedAssemblyToLink Condition=" '%(ManagedAssemblyToLink.IsTrimmable)' == 'true' And '%(ManagedAssemblyToLink.TrimMode)' == '' ">
+        <TrimMode>$(TrimMode)</TrimMode>
+      </ManagedAssemblyToLink>
     </ItemGroup>
 
 
