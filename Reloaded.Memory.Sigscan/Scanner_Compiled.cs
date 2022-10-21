@@ -16,12 +16,6 @@ public unsafe partial class Scanner
     ///     The compiled pattern to look for inside the given region.
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-#if NET5_0_OR_GREATER
-    [SkipLocalsInit]
-#endif
-#if NETCOREAPP3_0_OR_GREATER
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-#endif
     public static PatternScanResult FindPatternCompiled(byte* data, int dataLength, CompiledScanPattern pattern)
     {
         const int numberOfUnrolls = 8;
@@ -123,10 +117,6 @@ public unsafe partial class Scanner
         }
     }
     
-#if NET5_0_OR_GREATER
-    [SkipLocalsInit]
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-#endif
     private static bool TestRemainingMasks(int numberOfInstructions, byte* currentDataPointer, GenericInstruction* instructions)
     {
         /* When NumberOfInstructions > 1 */

@@ -6,11 +6,9 @@ using Reloaded.Memory.Sigscan.Structs;
 #if SIMD_INTRINSICS
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
-#endif
 
 namespace Reloaded.Memory.Sigscan;
 
-#if SIMD_INTRINSICS
 /// <summary>
 /// Modified version of: Pattern scan implementation 'LazySIMD' - by uberhalit
 /// https://github.com/uberhalit
@@ -44,9 +42,6 @@ public unsafe partial class Scanner
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>-1 if pattern is not found.</returns>
-#if NET5_0_OR_GREATER
-    [SkipLocalsInit]
-#endif
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static PatternScanResult FindPatternSse2(byte* data, int dataLength, string pattern)
     {
@@ -126,9 +121,6 @@ public unsafe partial class Scanner
     /// the first match is skipped and all indexes are shifted to the left by 1.
     /// </summary>
     /// <param name="scanPattern">Data of the pattern to be scanned.</param>
-#if NET5_0_OR_GREATER
-    [SkipLocalsInit]
-#endif
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static Span<ushort> BuildMatchIndexes(in SimdPatternScanData scanPattern)
     {
@@ -153,9 +145,6 @@ public unsafe partial class Scanner
     /// Generates byte-Vectors that are right-padded with 0 from a pattern. The first byte is skipped.
     /// </summary>
     /// <param name="cbPattern">The pattern in question.</param>
-#if NET5_0_OR_GREATER
-    [SkipLocalsInit]
-#endif
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static Vector128<byte>[] PadPatternToVector128Sse(in SimdPatternScanData cbPattern)
     {

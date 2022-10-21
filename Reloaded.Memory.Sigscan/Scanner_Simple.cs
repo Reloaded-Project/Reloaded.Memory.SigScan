@@ -19,12 +19,6 @@ public unsafe partial class Scanner
     ///     Key: ?? represents a byte that should be ignored, anything else if a hex byte. i.e. 11 represents 0x11, 1F represents 0x1F
     /// </param>
     /// <returns>A result indicating an offset (if found) of the pattern.</returns>
-#if NET5_0_OR_GREATER
-    [SkipLocalsInit]
-#endif
-#if NETCOREAPP3_0_OR_GREATER
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-#endif
     public static PatternScanResult FindPatternSimple(byte* data, int dataLength, SimplePatternScanData pattern)
     {
         var patternData = pattern.Bytes;
