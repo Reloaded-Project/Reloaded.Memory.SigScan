@@ -21,10 +21,10 @@ namespace Reloaded.Memory.Sigscan.Benchmark
             // Multithread
             //BenchmarkRunner.Run<LongPatternWithMaskEndMt>(new MTSigscanConfig(LongPatternWithMaskEndMt.GetFileSize));
             //BenchmarkRunner.Run<RandomMt>(new MTSigscanConfig(RandomMt.GetFileSize));
-            // BenchmarkRunner.Run<RandomMtBigSize>(new MTSigscanConfig(RandomMtBigSize.GetFileSize));
+            BenchmarkRunner.Run<RandomMtBigSize>(new MTSigscanConfig(RandomMtBigSize.GetFileSize));
             // BenchmarkRunner.Run<CachedVsUncachedRandomMt>(new MTSigscanConfig(CachedVsUncachedRandomMt.GetFileSize));
             
-            BenchmarkRunner.Run<LongPatternWithMaskEnd>(ScannerBenchmarkBase.GetConfig());
+            // BenchmarkRunner.Run<LongPatternWithMaskEnd>(ScannerBenchmarkBase.GetConfig());
             // BenchmarkRunner.Run<MediumPatternWithMaskEnd>(ScannerBenchmarkBase.GetConfig());
             // BenchmarkRunner.Run<ShortPatternEnd>(ScannerBenchmarkBase.GetConfig());
             // BenchmarkRunner.Run<OtherScannerBenchmarks>(ScannerBenchmarkBase.GetConfig());
@@ -32,6 +32,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark
 
             // BenchmarkRunner.Run<ParsePattern>();
             // BenchmarkRunner.Run<StringParsing>();
+            Console.ReadKey();
         }
 
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
@@ -30,7 +31,13 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Multithread
         [Benchmark]
         public int Random_ST()
         {
-            return _scanner.FindPattern(_patterns[0]).Offset;
+            var result = 0;
+            foreach (var pattern in CollectionsMarshal.AsSpan(_patterns))
+            {
+                result = _scanner.FindPattern(_patterns[0]).Offset;
+            }
+
+            return result;
         }
 
         [Benchmark]

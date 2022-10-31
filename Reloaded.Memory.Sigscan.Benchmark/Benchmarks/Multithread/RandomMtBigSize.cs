@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
@@ -12,7 +13,7 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Multithread
         // 200MB, fuck Denuvo
         const long ArraySize = 200_000_000;
 
-        [Params(1, 64)]
+        [Params(1, 4, 16, 64)]
         public int NumItems;
         
         private static List<string> _patterns;
@@ -37,13 +38,21 @@ namespace Reloaded.Memory.Sigscan.Benchmark.Benchmarks.Multithread
         [Benchmark]
         public int Random_ST()
         {
-            return _scanner.FindPattern(_patterns[0]).Offset;
+            var result = 0; 
+            foreach (var pattern in CollectionsMarshal.AsSpan(_patterns))
+                result = _scanner.FindPattern(pattern).Offset;
+
+            return result;
         }
 
         [Benchmark]
         public int Random_ST_Compiled()
-        {
-            return _scanner.FindPattern_Compiled(_patterns[0]).Offset;
+        {            
+            var result = 0; 
+            foreach (var pattern in CollectionsMarshal.AsSpan(_patterns))
+                result = _scanner.FindPattern_Compiled(pattern).Offset;
+
+            return result;
         }
 
         [Benchmark]
