@@ -55,7 +55,7 @@ public unsafe partial class Scanner
         int matchTableLength = matchTable.Length;
 
         var firstByteVec     = Vector256.Create(patternData.Bytes[patternData.LeadingIgnoreCount]);
-        int searchLength = dataLength - Math.Max(patternData.Bytes.Length >> 5 << 5, AvxRegisterLength); // bitshift rounds down
+        int searchLength = dataLength - (patternData.Bytes.Length +  AvxRegisterLength);
 
         int leadingIgnoreCount = patternData.LeadingIgnoreCount;
         ref var pVec = ref patternVectors[0];
@@ -68,6 +68,11 @@ public unsafe partial class Scanner
         var dataMaxPtr = dataPtr + searchLength;
         for (; dataPtr < dataMaxPtr; dataPtr++)
         {
+            if (dataPtr > (void*)0x00000001778b1000)
+            {
+                var a = 5;
+            }
+            
             // Problem: If pattern starts with unknown, will never match.
             var rhs = Avx.LoadVector256(dataPtr);
             var equal = Avx2.CompareEqual(pFirstByteVec, rhs);
