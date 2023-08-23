@@ -2,10 +2,9 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
-using Reloaded.Memory.Sigscan.Structs;
-using Reloaded.Memory.Sources;
 
 #if SIMD_INTRINSICS
 using System.Runtime.Intrinsics.X86;
@@ -24,11 +23,12 @@ public unsafe partial class Scanner : IScanner, IDisposable
 {
     private static int _currentProcessId = Process.GetCurrentProcess().Id;
 
-    private bool _disposedValue;
-    private GCHandle? _gcHandle;
     private byte*     _dataPtr;
     private int    _dataLength;
 
+    private GCHandle? _gcHandle;
+    private bool _disposedValue;
+    
     /// <summary>
     /// Creates a signature scanner given the data in which patterns are to be found.
     /// </summary>
@@ -53,6 +53,10 @@ public unsafe partial class Scanner : IScanner, IDisposable
     /// </summary>
     /// <param name="process">The process from which to scan patterns in. (Not Null)</param>
     /// <param name="module">An individual module of the given process, which denotes the start and end of memory region scanned.</param>
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("linux")]
+    [SupportedOSPlatform("windows")]
+#endif
     public Scanner(Process process, ProcessModule module)
     {
         // Optimization
@@ -64,7 +68,7 @@ public unsafe partial class Scanner : IScanner, IDisposable
         else
         {
             var externalProcess = new ExternalMemory(process);
-            externalProcess.ReadRaw((nuint)(nint)module.BaseAddress, out var data, module.ModuleMemorySize);
+            var data = externalProcess.ReadRaw((nuint)(nint)module.BaseAddress, module.ModuleMemorySize);
 
             _gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
             _dataPtr = (byte*)_gcHandle.Value.AddrOfPinnedObject();

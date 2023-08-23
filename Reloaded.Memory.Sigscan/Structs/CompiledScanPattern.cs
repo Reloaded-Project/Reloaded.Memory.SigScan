@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
+using Reloaded.Memory.Utilities;
 
 namespace Reloaded.Memory.Sigscan.Structs;
 
@@ -89,15 +90,15 @@ public ref struct CompiledScanPattern
         // Reverse order of value.
         if (BitConverter.IsLittleEndian)
         {
-            Endian.Reverse(ref value);
-            Endian.Reverse(ref mask);
+            value = Endian.Reverse(value);
+            mask = Endian.Reverse(mask);
 
             // Trim excess zeroes.
             int extraPadding = sizeof(nint) - entries.Length;
             for (int x = 0; x < extraPadding; x++)
             {
-                mask  = mask >> 8;
-                value = value >> 8;
+                mask >>= 8;
+                value >>= 8;
             }
         }
     }
