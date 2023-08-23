@@ -20,7 +20,7 @@
     <DefineConstants Condition="('$(TargetFramework)' == 'netcoreapp3.1') Or ('$(TargetFramework)' == 'net5.0') Or ('$(TargetFramework)' == 'net6.0')">$(DefineConstants);SIMD_INTRINSICS</DefineConstants>
 
     <LangVersion>preview</LangVersion>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Version>3.1.6</Version>
   </PropertyGroup>
   
