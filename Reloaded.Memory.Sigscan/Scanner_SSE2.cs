@@ -54,7 +54,7 @@ public unsafe partial class Scanner
         int matchTableLength = matchTable.Length;
 
         var firstByteVec  = Vector128.Create(patternData.Bytes[patternData.LeadingIgnoreCount]);
-        int searchLength = dataLength - (patternData.Bytes.Length +  SseRegisterLength);
+        int searchLength = dataLength - ((patternVectors.Length + 1) * (SseRegisterLength));
 
         int leadingIgnoreCount = patternData.LeadingIgnoreCount;
         ref var pVec = ref patternVectors[0];
